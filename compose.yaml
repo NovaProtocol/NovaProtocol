@@ -1,0 +1,28 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: novaprotocol_main
+    restart: unless-stopped
+    environment:
+      DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:?DEPLOYMENT_TYPE is required}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    networks:
+      - cloudflared-tunnel
+
+  caddy:
+    build:
+      context: ./caddy
+      dockerfile: Dockerfile
+    container_name: novaprotocol_caddy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:7050:7050"
+    networks:
+      - cloudflared-tunnel
+
+networks:
+  cloudflared-tunnel:
+    external: true
+    name: cloudflared-tunnel_default
