@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+*.db
+*.sqlite3
+.cortexkit/
+.vscode/
+*.code-workspace
+static/assets/typing_*.gif
+static/assets/typing_*.svg
