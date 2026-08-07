@@ -1,0 +1,9 @@
+:7050 {
+    handle /health {
+        reverse_proxy app:7051
+    }
+
+    handle {
+        reverse_proxy app:7051
+    }
+}
