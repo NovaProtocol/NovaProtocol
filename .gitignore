@@ -9,3 +9,4 @@ __pycache__/
 *.code-workspace
 static/assets/typing_*.gif
 static/assets/typing_*.svg
+docs/
