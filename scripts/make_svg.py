@@ -11,8 +11,10 @@ CODE_FONT = 14
 TERM_FONT = 11
 MAX_VISIBLE = 18  # number of line-number rows shown, regardless of code length
 
+START_DELAY = 1.0  # seconds the typing animation waits (frozen) before starting
+
 # Colors
-BG = "#121418"
+BG = "#0D1117"
 TITLE_BG = "#22262e"
 BORDER = "#30353e"
 FG = "#c8d2dc"
@@ -300,16 +302,16 @@ def highlight_python(line: str) -> str:
 
 def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple[str, str]], load_msg: str) -> str:
     code_x = 48
-    lines_start_y = 66
+    lines_start_y = 44
     cursor_w = 9
 
-    # Variable timing: constant per-char delay, plus a newline delay (1.5x the
-    # per-char delay) after finishing each line. Total is computed per demo.
+    # Variable timing: constant per-char delay, no per-line delay. The whole
+    # timeline is offset by START_DELAY so the animation stays frozen for the
+    # first second (while the name plays), then types once and freezes.
     char_w = CODE_FONT * 0.6  # approx mono char width at the code font size
 
-    # absolute times (seconds). No per-line delay: each char types at a constant
-    # PER_CHAR and the next line starts immediately. Blank lines take no time.
-    t = 0.0
+    # absolute times (seconds). Offset by START_DELAY.
+    t = START_DELAY
     line_abs = []  # (start, end, hold_until) per code line
     for l in code:
         n = len(l[0])  # blank lines = 0 chars = instant
@@ -361,7 +363,7 @@ def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple
         clips.append(
             f'<clipPath id="{rid}">'
             f'<rect x="{code_x}" y="{y - 18}" width="0" height="{CHAR_H}">'
-            f'<animate attributeName="width" dur="{total:.2f}s" repeatCount="indefinite" '
+            f'<animate attributeName="width" dur="{total:.2f}s" fill="freeze" '
             f'values="0;0;3000;3000" keyTimes="0;{s:.4f};{min(e, 0.999):.4f};1"/></rect></clipPath>'
         )
         content = highlight_python(line) if is_py else f'<tspan fill="{FG}">{esc(line)}</tspan>'
@@ -392,9 +394,9 @@ def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple
         cursor_elems.append(
             f'<rect x="{code_x}" y="0" width="10" height="{CHAR_H}" fill="{ACCENT}" opacity="0.8">'
             f'<animateTransform attributeName="transform" type="translate" '
-            f'dur="{total:.2f}s" repeatCount="indefinite" '
+            f'dur="{total:.2f}s" fill="freeze" '
             f'values="{";".join(x_vals)}" keyTimes="{";".join(x_kt)}"/>'
-            f'<animate attributeName="y" dur="{total:.2f}s" repeatCount="indefinite" '
+            f'<animate attributeName="y" dur="{total:.2f}s" fill="freeze" '
             f'values="{";".join(y_vals)}" keyTimes="{";".join(y_kt)}"/>'
             f'</rect>'
         )
@@ -409,7 +411,7 @@ def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple
         out_elems.append(
             f'<text x="{CODE_W + 22}" y="{y}" font-size="{TERM_FONT}" fill="{color}">'
             f'<tspan>{esc(text)}</tspan>'
-            f'<animate attributeName="opacity" dur="{total:.2f}s" repeatCount="indefinite" '
+            f'<animate attributeName="opacity" dur="{total:.2f}s" fill="freeze" '
             f'values="0;0;1;1" keyTimes="0;{min(e, 0.999):.4f};{min(e + 0.001, 0.999):.4f};1"/>'
             f'</text>'
         )
@@ -428,7 +430,7 @@ def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple
         spinner_elems.append(
             f'<text x="{CODE_W + 22}" y="{load_y}" font-size="{TERM_FONT}" fill="{ACCENT}">'
             f'<tspan>{esc(msg)}</tspan>'
-            f'<animate attributeName="opacity" dur="{total:.2f}s" repeatCount="indefinite" '
+            f'<animate attributeName="opacity" dur="{total:.2f}s" fill="freeze" '
             f'values="0;0;1;1;0;0" keyTimes="0;{min(a, 0.999):.4f};{min(a + 0.001, 0.999):.4f};{min(b - 0.001, 0.999):.4f};{min(b, 0.999):.4f};1"/></text>'
         )
 
@@ -472,7 +474,7 @@ def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple
         vals.append(f"0,-{max_scroll * CHAR_H}")
         scroll_anim = (
             f'<animateTransform attributeName="transform" type="translate" '
-            f'dur="{total:.2f}s" repeatCount="indefinite" '
+            f'dur="{total:.2f}s" fill="freeze" '
             f'values="{";".join(vals)}" keyTimes="{";".join(kt)}" calcMode="discrete"/>'
         )
 
@@ -480,10 +482,7 @@ def build_demo_svg(filename: str, code: list[tuple[str, bool]], term: list[tuple
 <defs>{''.join(clips)}{viewport}{''.join(out_clips)}
 </defs>
 <rect width="{W}" height="{H}" fill="{BG}"/>
-<rect width="{W}" height="36" fill="{TITLE_BG}"/>
-<circle cx="26" cy="18" r="5" fill="{RED_DOT}"/><circle cx="44" cy="18" r="5" fill="{YELLOW_DOT}"/><circle cx="62" cy="18" r="5" fill="{GREEN_DOT}"/>
-<text x="{W // 2 - 80}" y="25" font-size="14" fill="{GRAY}">{esc(filename)} — nova</text>
-<line x1="{CODE_W}" y1="36" x2="{CODE_W}" y2="{H}" stroke="{BORDER}" stroke-width="2"/>
+<line x1="{CODE_W}" y1="0" x2="{CODE_W}" y2="{H}" stroke="{BORDER}" stroke-width="2"/>
 <g clip-path="url(#codeview)">
 <g>
 {scroll_anim}
