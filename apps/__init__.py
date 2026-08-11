@@ -1,8 +1,6 @@
 from __future__ import annotations
 
 import logging
-import sys
-from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -21,24 +19,6 @@ if not logger.handlers:
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # Generate the demo SVGs at startup (they are gitignored, not committed).
-    assets = _PROJECT_ROOT / "static" / "assets"
-    assets.mkdir(parents=True, exist_ok=True)
-    if not list(assets.glob("typing_*.svg")):
-        scripts_dir = _PROJECT_ROOT / "scripts"
-        if str(scripts_dir) not in sys.path:
-            sys.path.insert(0, str(scripts_dir))
-        try:
-            import make_svg
-
-            make_svg.generate()
-        except Exception as exc:  # pragma: no cover
-            logger.error("failed to generate typing SVGs: %s", exc)
-    yield
-
-
 def create_app() -> FastAPI:
     config = get_config()
 
@@ -46,7 +26,6 @@ def create_app() -> FastAPI:
         title="NovaProtocol Assets",
         description="Public asset server for the NovaProtocol GitHub profile.",
         debug=config.DEBUG,
-        lifespan=lifespan,
     )
 
     @app.middleware("http")

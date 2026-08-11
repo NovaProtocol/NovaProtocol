@@ -8,7 +8,9 @@ _PROFILE_PATH = Path(__file__).resolve().parent.parent / "data" / "github_profil
 # Canonical URL -> local path
 _REWRITES = {
     "https://github.projectnova.download/name.svg": "/name.svg",
-    "https://github.projectnova.download/typing.svg": "/typing.svg",
+    "https://github.projectnova.download/skills.svg": "/skills.svg",
+    "https://github.projectnova.download/console.svg": "/console.svg",
+    "https://github.projectnova.download/typing.svg": "/console.svg",
 }
 
 
@@ -31,8 +33,8 @@ def _rewrite_img(html: str) -> str:
             return ""  # drop stats image entirely
         local = _REWRITES.get(url)
         if local:
-            tag = re.sub(r'src="[^"]*"', f'src="{local}"', tag, count=1)
-            tag = re.sub(r'data-canonical-src="[^"]*"', f'data-canonical-src="{local}"', tag)
+            # Use <object> instead of <img> so SMIL animations actually run.
+            return f'<object type="image/svg+xml" data="{local}"></object>'
         return tag
 
     return re.sub(r'<img[^>]*>', _fix, html)
