@@ -1,11 +1,17 @@
 <div align="center">
 
-[![name](https://github.projectnova.download/name.svg)](https://portfolio.projectnova.download/)
+![name](https://github.projectnova.download/name.svg)
 
 </div>
 
 <div align="center">
 
-[![typing](https://github.projectnova.download/typing.svg)](https://portfolio.projectnova.download/)
+![skills](https://github.projectnova.download/skills.svg)
+
+</div>
+
+<div align="center">
+
+![console](https://github.projectnova.download/console.svg)
 
 </div>
