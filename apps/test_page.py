@@ -10,7 +10,6 @@ _REWRITES = {
     "https://github.projectnova.download/name.svg": "/name.svg",
     "https://github.projectnova.download/skills.svg": "/skills.svg",
     "https://github.projectnova.download/console.svg": "/console.svg",
-    "https://github.projectnova.download/typing.svg": "/console.svg",
 }
 
 
