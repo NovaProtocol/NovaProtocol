@@ -1,50 +1,40 @@
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
 _PROFILE_PATH = Path(__file__).resolve().parent.parent / "data" / "github_profile.html"
 
-# Canonical URL -> local path
-_REWRITES = {
-    "https://github.projectnova.download/name.svg": "/name.svg",
-    "https://github.projectnova.download/skills.svg": "/skills.svg",
-    "https://github.projectnova.download/console.svg": "/console.svg",
-}
 
+def _render_svg_gallery() -> str:
+    """Self-contained live view: embed the profile SVGs directly.
 
-def _rewrite_img(html: str) -> str:
-    """Rewrite <img> tags that reference the profile's animated SVGs.
-
-    GitHub serves these through Camo: the visible `src` is a camo URL and the
-    real URL is in `data-canonical-src`. Replace the camo `src` with the local
-    path so they render offline, and remove the stats image.
+    Uses <object> so SMIL animations actually run. No dependency on the
+    scraped profile snapshot, so this works in any deployment.
     """
-
-    def _fix(match: re.Match) -> str:
-        tag = match.group(0)
-        # determine which file this is from data-canonical-src
-        canonical = re.search(r'data-canonical-src="([^"]+)"', tag)
-        if not canonical:
-            return tag
-        url = canonical.group(1)
-        if "stats.svg" in url:
-            return ""  # drop stats image entirely
-        local = _REWRITES.get(url)
-        if local:
-            # Use <object> instead of <img> so SMIL animations actually run.
-            return f'<object type="image/svg+xml" data="{local}"></object>'
-        return tag
-
-    return re.sub(r'<img[^>]*>', _fix, html)
+    cards = "".join(
+        f'<div style="background:#0a0a0f;border-radius:12px;padding:16px;'
+        f'margin:0 auto 24px;max-width:900px;display:flex;justify-content:center;">'
+        f'<object type="image/svg+xml" data="{path}" '
+        f'style="max-width:100%;"></object></div>'
+        for path in ("/name.svg", "/skills.svg", "/console.svg")
+    )
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>GitHub Profile Assets</title>
+<style>
+  body {{ margin:0; padding:32px 16px; background:#0d1117; font-family:system-ui,sans-serif; }}
+  h1 {{ color:#e6edf3; text-align:center; font-size:20px; margin:0 0 32px; }}
+</style>
+</head>
+<body>
+<h1>Live profile assets</h1>
+{cards}
+</body>
+</html>
+"""
 
 
 def render_test_page() -> str:
-    if not _PROFILE_PATH.exists():
-        return "<h1>Missing data/github_profile.html</h1>"
-    html = _PROFILE_PATH.read_text(encoding="utf-8")
-    html = _rewrite_img(html)
-
-    # clean up any orphaned anchor around the removed stats image
-    html = re.sub(r'<a href="[^"]*stats\.svg"[^>]*>\s*</a>', '', html)
-    return html
+    return _render_svg_gallery()
