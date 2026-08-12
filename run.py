@@ -2,15 +2,11 @@ from __future__ import annotations
 
 import argparse
 import os
-from pathlib import Path
 
-from dotenv import load_dotenv
+import uvicorn
 
 
 def main() -> None:
-    env_path = Path(__file__).resolve().parent / ".env"
-    load_dotenv(env_path)
-
     parser = argparse.ArgumentParser(description="NovaProtocol Assets Server")
     parser.add_argument(
         "--mode",
@@ -21,8 +17,6 @@ def main() -> None:
     args = parser.parse_args()
 
     os.environ["DEPLOYMENT_TYPE"] = args.mode
-
-    import uvicorn
 
     uvicorn.run(
         "apps:create_app",
