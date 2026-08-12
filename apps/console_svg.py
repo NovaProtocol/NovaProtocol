@@ -87,7 +87,7 @@ COMMANDS: list[dict] = [
         ],
     },
     {
-        "input": "docker compose uo -d",
+        "input": "docker compose uo -d",  # "uo" typo is intentional: it drives the rendered error below
         "output": [
             f"{RED}bash: uo: command not found{RESET}",
             "Usage:  docker compose [OPTIONS] COMMAND"
