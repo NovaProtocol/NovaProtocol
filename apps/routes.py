@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse, Response, HTMLResponse
+from fastapi.responses import Response, HTMLResponse
 
 from apps import console_svg, name_svg, skills_svg
-from apps.config import get_config
 
 router = APIRouter()
 
@@ -50,8 +49,6 @@ async def skills_route():
 
 @router.get("/test")
 async def test_preview():
-    if not get_config().DEBUG:
-        return JSONResponse({"error": "not found"}, status_code=404)
     from apps import test_page
 
     return HTMLResponse(test_page.render_test_page())
