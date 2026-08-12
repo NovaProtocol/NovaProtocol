@@ -7,4 +7,5 @@ __pycache__/
 .cortexkit/
 .vscode/
 *.code-workspace
+data/github_profile.html
 docs/
