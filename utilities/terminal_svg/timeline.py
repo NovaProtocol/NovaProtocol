@@ -21,11 +21,6 @@ class Row:
     chars: list[Char]
     begin: float  # when this row starts appearing
     kind: str = "output"  # "command" | "output"
-    delay: float = 0.0    # per-entry pause (for slow commands)
-
-    def __post_init__(self):
-        if not self.chars and not hasattr(self, "_empty"):
-            self.chars = []
 
 
 @dataclass
@@ -79,7 +74,7 @@ def build_timeline(
                 chars.append(Char(ch, white, t))
                 t += delay_per_char_input
 
-        rows.append(Row(chars=chars, begin=row_begin, kind="command", delay=entry_delay))
+        rows.append(Row(chars=chars, begin=row_begin, kind="command"))
 
         # --- output rows ---
         step = delay_per_char_output if delay_per_char_output > 0 else 0.001
