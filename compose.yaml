@@ -7,7 +7,6 @@ services:
     restart: unless-stopped
     environment:
       DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:?DEPLOYMENT_TYPE is required}
-      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
     networks:
       - cloudflared-tunnel
 
