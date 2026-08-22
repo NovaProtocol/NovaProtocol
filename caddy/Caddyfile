@@ -1,3 +1,9 @@
 :7050 {
-    reverse_proxy app:7051
+    handle /health {
+        reverse_proxy novaprotocol_main:7051
+    }
+
+    handle {
+        reverse_proxy novaprotocol_main:7051
+    }
 }

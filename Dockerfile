@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-co
 
 COPY . .
 
-RUN useradd -m appuser && chown -R appuser:appuser /app
+RUN python3 -m compileall -q /app 2>/dev/null || true
+
+RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
 USER appuser
 
 EXPOSE 7051

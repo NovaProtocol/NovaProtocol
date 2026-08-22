@@ -8,13 +8,13 @@ services:
     environment:
       DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:?DEPLOYMENT_TYPE is required}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request;urllib.request.urlopen('http://127.0.0.1:7051/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7051/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
       start_period: 10s
     networks:
-      - cloudflared-tunnel
+      - default
 
   caddy:
     build:
@@ -22,18 +22,14 @@ services:
       dockerfile: Dockerfile
     container_name: novaprotocol_caddy
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1:7050/health"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
     ports:
       - "127.0.0.1:7050:7050"
     networks:
+      - default
       - cloudflared-tunnel
 
 networks:
+  default:
   cloudflared-tunnel:
     external: true
     name: cloudflared-tunnel_default
