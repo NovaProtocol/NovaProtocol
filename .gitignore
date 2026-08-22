@@ -1,12 +1,19 @@
 .venv/
+venv/
 __pycache__/
 *.pyc
+*.pyo
 .env
+.env.*
 *.db
 *.sqlite3
+.mypy_cache/
+.pytest_cache/
 .cortexkit/
 .vscode/
+.idea/
 *.code-workspace
+.DS_Store
 data/github_profile.html
 docs/
 
@@ -15,5 +22,12 @@ docs/
 .superpowers/
 .opencode/
 .claude/
+.cursor/
 .continue/
 AGENTS.md
+CLAUDE.md
+GEMINI.md
+scratch/
+*.tmp
+*.bak
+*.swp
