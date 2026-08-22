@@ -39,13 +39,15 @@ def _char_style(style: Style) -> dict:
 
 def _flash(el, appear_t: float):
     """Make the element visible at appear_t (opacity 0 -> 1), held forever."""
-    el.add(animate.Animate(
-        attributeName="opacity",
-        values="0;1",
-        begin=f"{appear_t:.3f}s",
-        dur="0.01s",
-        fill="freeze",
-    ))
+    el.add(
+        animate.Animate(
+            attributeName="opacity",
+            values="0;1",
+            begin=f"{appear_t:.3f}s",
+            dur="0.01s",
+            fill="freeze",
+        )
+    )
 
 
 def _y_chain(el, init_y: float, scroll_times: list[float]):
@@ -54,27 +56,31 @@ def _y_chain(el, init_y: float, scroll_times: list[float]):
     for st in scroll_times:
         prev = y
         y -= LINE_H
-        el.add(animate.Animate(
-            attributeName="y",
-            values=f"{prev:.1f};{y:.1f}",
-            begin=f"{st:.3f}s",
-            dur="0.01s",
-            fill="freeze",
-        ))
+        el.add(
+            animate.Animate(
+                attributeName="y",
+                values=f"{prev:.1f};{y:.1f}",
+                begin=f"{st:.3f}s",
+                dur="0.01s",
+                fill="freeze",
+            )
+        )
 
 
 def _loop_animate(el, attr: str, appear_t: float, total: float, values=("0", "1")):
     """KeyTimes animate: instant jump at appear_t, loops with the master dur."""
     k = appear_t / total if total > 0 else 0.0
     k = max(0.0, min(1.0, k))
-    el.add(animate.Animate(
-        attributeName=attr,
-        values=";".join(values),
-        keyTimes=f"0;{k:.5f};{k:.5f};1",
-        dur=f"{total:.3f}s",
-        begin="0s",
-        repeatCount="indefinite",
-    ))
+    el.add(
+        animate.Animate(
+            attributeName=attr,
+            values=";".join(values),
+            keyTimes=f"0;{k:.5f};{k:.5f};1",
+            dur=f"{total:.3f}s",
+            begin="0s",
+            repeatCount="indefinite",
+        )
+    )
 
 
 def _loop_y_chain(el, init_y: float, scroll_times: list[float], total: float):
@@ -93,14 +99,16 @@ def _loop_y_chain(el, init_y: float, scroll_times: list[float], total: float):
         if kt[i] < kt[i - 1]:
             kt[i] = kt[i - 1]
     vals = [f"{y:.1f}" for _, y in y_ms]
-    el.add(animate.Animate(
-        attributeName="y",
-        values=";".join(vals),
-        keyTimes=";".join(f"{k:.5f}" for k in kt),
-        dur=f"{total:.3f}s",
-        begin="0s",
-        repeatCount="indefinite",
-    ))
+    el.add(
+        animate.Animate(
+            attributeName="y",
+            values=";".join(vals),
+            keyTimes=";".join(f"{k:.5f}" for k in kt),
+            dur=f"{total:.3f}s",
+            begin="0s",
+            repeatCount="indefinite",
+        )
+    )
 
 
 def render_svg(
@@ -110,7 +118,6 @@ def render_svg(
     loop: bool = False,
 ) -> str:
     rows: list[Row] = timeline.rows
-    R = len(rows)
     total = timeline.total
 
     content_h = max_line * LINE_H
@@ -120,18 +127,30 @@ def render_svg(
 
     # Chrome
     dwg.add(dwg.rect(insert=(0, 0), size=(width, height), fill=BG))
-    dwg.add(dwg.rect(insert=(6, 6), size=(width - 12, height - 12),
-                      fill="#0b0f14", stroke="#30353e", stroke_width=1, rx=4))
+    dwg.add(
+        dwg.rect(
+            insert=(6, 6),
+            size=(width - 12, height - 12),
+            fill="#0b0f14",
+            stroke="#30353e",
+            stroke_width=1,
+            rx=4,
+        )
+    )
     dwg.add(dwg.rect(insert=(6, 6), size=(width - 12, 26), fill="#161b22", rx=4))
-    title = dwg.text("nova@ProjectNova: ~ \u2014 bash",
-                     insert=(PAD_X, 24), font_family=FONT, font_size=12, fill="#828c9b")
+    title = dwg.text(
+        "nova@ProjectNova: ~ \u2014 bash",
+        insert=(PAD_X, 24),
+        font_family=FONT,
+        font_size=12,
+        fill="#828c9b",
+    )
     title["xml:space"] = "preserve"
     dwg.add(title)
 
     # Viewport clip: exactly max_line rows
     clip = dwg.clipPath(id="term_viewport")
-    clip.add(dwg.rect(insert=(6, BODY_TOP - FONT_SIZE),
-                       size=(width - 12, content_h)))
+    clip.add(dwg.rect(insert=(6, BODY_TOP - FONT_SIZE), size=(width - 12, content_h)))
     dwg.add(clip)
     viewport = dwg.g(clip_path="url(#term_viewport)")
 
@@ -144,8 +163,7 @@ def render_svg(
         init_y = BODY_TOP + i * LINE_H
         is_command = row.kind == "command"
 
-        te = dwg.text("", insert=(PAD_X, init_y),
-                      font_family=FONT, font_size=FONT_SIZE)
+        te = dwg.text("", insert=(PAD_X, init_y), font_family=FONT, font_size=FONT_SIZE)
         te["xml:space"] = "preserve"  # keep column-aligned spaces
 
         if is_command:
@@ -186,4 +204,4 @@ def render_svg(
     viewport.add(content)
     dwg.add(viewport)
 
-    return dwg.tostring()
+    return str(dwg.tostring())

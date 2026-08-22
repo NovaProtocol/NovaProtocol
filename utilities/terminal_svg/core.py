@@ -2,20 +2,6 @@
 
 from __future__ import annotations
 
-from utilities.terminal_svg.ansi import (  # re-export for convenience
-    ANSI_FG,
-    BG,
-    BLUE,
-    FONT,
-    GRAY,
-    GREEN,
-    GREEN_DIM,
-    PINK,
-    RED,
-    Style,
-    YELLOW,
-    parse_ansi,
-)
 from utilities.terminal_svg.render import render_svg
 from utilities.terminal_svg.timeline import build_timeline
 
@@ -41,9 +27,9 @@ class TerminalSVG:
         self.delay_per_char_output = 0.0
 
         # Line timing (seconds, per entry):
-        self.delay_per_line_input = 0.0    # wait before typing the input (prompt shows first)
-        self.delay_per_line_output = 0.0   # wait before each output line appears
-        self.delay_after_entry = 0.0       # wait after command+output before the next entry
+        self.delay_per_line_input = 0.0  # wait before typing the input (prompt shows first)
+        self.delay_per_line_output = 0.0  # wait before each output line appears
+        self.delay_after_entry = 0.0  # wait after command+output before the next entry
 
         self.width = 880
         self._entries: list[dict] = []

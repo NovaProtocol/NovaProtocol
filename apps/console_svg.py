@@ -40,38 +40,34 @@ COMMANDS: list[dict] = [
     },
     {
         "input": "uptime",
-        "output": [
-            " 10:24:01 up 0 min,  1 user,  load average: 0.85, 0.60, 0.25"
-        ],
+        "output": [" 10:24:01 up 0 min,  1 user,  load average: 0.85, 0.60, 0.25"],
     },
     {
         "input": "uname -a",
-        "output": [
-            "Linux prod-01 6.8.0-40-generic #40-Ubuntu SMP x86_64 GNU/Linux"
-        ],
+        "output": ["Linux prod-01 6.8.0-40-generic #40-Ubuntu SMP x86_64 GNU/Linux"],
     },
     {
         "input": "free -h",
         "output": [
             f"{BLUE}               total  used    free   shared  buff/cache  available{RESET}",
-                   " Mem:           15Gi  1.2Gi   12Gi    112Mi    1.8Gi       13Gi",
-                   "Swap:          2.0Gi    0B   2.0Gi",
+            " Mem:           15Gi  1.2Gi   12Gi    112Mi    1.8Gi       13Gi",
+            "Swap:          2.0Gi    0B   2.0Gi",
         ],
     },
     {
         "input": "df -h",
         "output": [
             f"{BLUE}Filesystem      Size  Used Avail Use% Mounted on{RESET}",
-                   "/dev/sda1       100G   38G   62G  38% /",
-                   "tmpfs           3.1G  1.2M  3.1G   1% /dev/shm",
+            "/dev/sda1       100G   38G   62G  38% /",
+            "tmpfs           3.1G  1.2M  3.1G   1% /dev/shm",
         ],
     },
     {
         "input": "ss -tlnp",
         "output": [
             f"{BLUE}State   Recv-Q  Send-Q  Local Address:Port  Peer Address:Port  Process{RESET}",
-                   'LISTEN  0       4096    127.0.0.53:53        0.0.0.0:*          users:(("systemd-resolve",pid=389,fd=17))',
-                   'LISTEN  0       128     0.0.0.0:22           0.0.0.0:*          users:(("sshd",pid=412,fd=3))',
+            'LISTEN  0       4096    127.0.0.53:53        0.0.0.0:*          users:(("systemd-resolve",pid=389,fd=17))',
+            'LISTEN  0       128     0.0.0.0:22           0.0.0.0:*          users:(("sshd",pid=412,fd=3))',
         ],
     },
     {
@@ -82,15 +78,15 @@ COMMANDS: list[dict] = [
         "input": "docker compose ps",
         "output": [
             f"{BLUE}NAME                  IMAGE       STATUS          NAMES{RESET}",
-                   "novaprotocol_main     (created)                   novaprotocol_main",
-                   "novaprotocol_caddy    (created)                   novaprotocol_caddy",
+            "novaprotocol_main     (created)                   novaprotocol_main",
+            "novaprotocol_caddy    (created)                   novaprotocol_caddy",
         ],
     },
     {
         "input": "docker compose uo -d",  # "uo" typo is intentional: it drives the rendered error below
         "output": [
             f"{RED}bash: uo: command not found{RESET}",
-            "Usage:  docker compose [OPTIONS] COMMAND"
+            "Usage:  docker compose [OPTIONS] COMMAND",
         ],
     },
     {
@@ -104,8 +100,8 @@ COMMANDS: list[dict] = [
         "input": "docker compose ps",
         "output": [
             f"{BLUE}NAME                  IMAGE                     STATUS           NAMES{RESET}",
-                   "novaprotocol_main     novaprotocol/app:latest   Up 2 seconds     novaprotocol_main",
-                   "novaprotocol_caddy    caddy:2-alpine            Up 2 seconds     novaprotocol_caddy",
+            "novaprotocol_main     novaprotocol/app:latest   Up 2 seconds     novaprotocol_main",
+            "novaprotocol_caddy    caddy:2-alpine            Up 2 seconds     novaprotocol_caddy",
         ],
     },
     {
@@ -130,13 +126,13 @@ COMMANDS: list[dict] = [
     },
     {
         "input": "curl -s localhost:7051/health",
-        "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"],
+        "output": [f'{GREEN}{{"status":"ok"}}{RESET}'],
     },
     {
         "input": "cloudflared tunnel list",
         "output": [
             f"{BLUE}ID                                   NAME           CREATED        CONNECTOR{RESET}",
-                   "2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d novaprotocol   2026-05-01     1 connector",
+            "2a3b4c5d-6e7f-8a9b-0c1d-2e3f4a5b6c7d novaprotocol   2026-05-01     1 connector",
         ],
     },
     {
@@ -150,7 +146,7 @@ COMMANDS: list[dict] = [
     },
     {
         "input": "curl -s https://github.projectnova.download/health",
-        "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"],
+        "output": [f'{GREEN}{{"status":"ok"}}{RESET}'],
     },
     {
         "input": "systemctl status caddy",
@@ -161,16 +157,9 @@ COMMANDS: list[dict] = [
     },
     {
         "input": "exit",
-        "output": [
-            "logout",
-            "Connection to ProjectNova.remote closed."
-        ],
+        "output": ["logout", "Connection to ProjectNova.remote closed."],
     },
-    {
-        "input": "",
-        "output": [],
-        "custom_prefix": "PS C:\\Users\\khyles> "
-    },
+    {"input": "", "output": [], "custom_prefix": "PS C:\\Users\\khyles> "},
 ]
 
 

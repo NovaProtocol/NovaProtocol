@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from fastapi.responses import Response, HTMLResponse
+from fastapi.responses import HTMLResponse, Response
 
 from apps import console_svg, name_svg, skills_svg
 
