@@ -24,4 +24,3 @@ def get_config() -> BaseConfig:
     if deployment == "production":
         return ProductionConfig()
     return DebugConfig()
-

@@ -1,0 +1,79 @@
+site_name: NovaProtocol · Documentation
+site_description: Documentation for NovaProtocol — public FastAPI asset server that renders animated terminal SVGs for the GitHub profile
+site_author: NovaProtocol
+repo_url: https://github.com/NovaProtocol/NovaProtocol
+repo_name: NovaProtocol/NovaProtocol
+edit_uri: edit/main/documentation/docs/
+
+theme:
+  name: material
+  palette:
+    primary: custom
+    accent: custom
+  icon:
+    repo: fontawesome/brands/github
+  font:
+    text: Segoe UI
+    code: Cascadia Code
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.indexes
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+extra:
+  generator: false
+
+extra_css:
+  - assets/extra.css
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.snippets
+  - pymdownx.emoji
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - glightbox
+
+extra_javascript:
+  - https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - Architecture: architecture.md
+  - Terminal SVG:
+      - terminal-svg/index.md
+      - ANSI Parsing: terminal-svg/ansi.md
+      - Timeline Engine: terminal-svg/timeline.md
+      - Rendering: terminal-svg/render.md
+      - Core API: terminal-svg/core.md
+  - SVG Badges:
+      - svg-badges/index.md
+      - Name Badge: svg-badges/name-svg.md
+      - Console Badge: svg-badges/console-svg.md
+      - Skills Badge: svg-badges/skills-svg.md
+  - API Reference: api-reference.md
+  - Docker & Deployment: docker.md
+  - Why No gRPC: why-no-grpc.md

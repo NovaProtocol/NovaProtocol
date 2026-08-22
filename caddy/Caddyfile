@@ -3,6 +3,10 @@
         reverse_proxy novaprotocol_main:7051
     }
 
+    handle_path /documentation/* {
+        reverse_proxy novaprotocol_documentation:8005
+    }
+
     handle {
         reverse_proxy novaprotocol_main:7051
     }

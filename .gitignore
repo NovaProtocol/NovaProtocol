@@ -15,7 +15,8 @@ __pycache__/
 *.code-workspace
 .DS_Store
 data/github_profile.html
-docs/
+/docs/
+documentation/site/
 
 # AI scratch — never commit
 .agents/

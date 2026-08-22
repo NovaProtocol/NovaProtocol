@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from utilities.terminal_svg.ansi import FG, Segment, Style, parse_ansi
+from utilities.terminal_svg.ansi import FG, Style, parse_ansi
 
 
 @dataclass
