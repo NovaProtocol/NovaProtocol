@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from apps.console_svg import render_console_svg
 
 

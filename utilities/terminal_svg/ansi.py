@@ -24,10 +24,22 @@ FONT = "DejaVu Sans Mono, Menlo, Consolas, monospace"
 
 # Standard ANSI SGR foreground codes -> hex.
 ANSI_FG = {
-    "30": "#000000", "31": RED, "32": "#50c878", "33": YELLOW,
-    "34": BLUE, "35": PINK, "36": "#8be9fd", "37": FG,
-    "90": GRAY, "91": RED, "92": "#50c878", "93": YELLOW,
-    "94": BLUE, "95": PINK, "96": "#8be9fd", "97": "#ffffff",
+    "30": "#000000",
+    "31": RED,
+    "32": "#50c878",
+    "33": YELLOW,
+    "34": BLUE,
+    "35": PINK,
+    "36": "#8be9fd",
+    "37": FG,
+    "90": GRAY,
+    "91": RED,
+    "92": "#50c878",
+    "93": YELLOW,
+    "94": BLUE,
+    "95": PINK,
+    "96": "#8be9fd",
+    "97": "#ffffff",
 }
 
 _SGR = re.compile(r"\x1b\[([0-9;]*)m")
@@ -91,7 +103,7 @@ def parse_ansi(text: str, base: Style | None = None) -> list[Segment]:
             segments.append(Segment(text[pos:start], Style(**vars(style)), delay_acc))
             delay_acc = 0.0
         if kind == "sgr":
-            for c in ([x for x in val.split(";") if x] or ["0"]):
+            for c in [x for x in val.split(";") if x] or ["0"]:
                 _apply_code(style, c)
         else:
             delay_acc += int(val) / 1000.0

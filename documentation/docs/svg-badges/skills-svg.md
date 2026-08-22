@@ -1,23 +1,15 @@
-"""Skills badge — a terminal that runs intro scripts.
+# Skills Badge (`apps/skills_svg.py`)
 
-Each command's output fills the full max_line (20) rows, padded with blank
-lines, and holds for 10s so it can be read before the next command scrolls in.
-Only public, non-sensitive info (no contact/experience details).
-"""
+A tall 20-line badge — the “career panel” that cycles through four panes via `./get_*.sh` scripts, each full-screen (20 rows) × 10 seconds, padded with blank lines so the next pane scrolls in cleanly.
 
-from __future__ import annotations
+## Route
 
-from utilities.terminal_svg import TerminalSVG
+`GET /skills.svg` → `image/svg+xml` with `Cache-Control: no-store, max-age=0` (`apps/routes.py::skills_route`).
 
-# ANSI helpers.
-GREEN = "\x1b[32m"
-BLUE = "\x1b[34m"
-RED = "\x1b[31m"
-YELLOW = "\x1b[33m"
-CYAN = "\x1b[36m"
-GRAY = "\x1b[90m"
-BOLD = "\x1b[1m"
-RESET = "\x1b[0m"
+## Session
+
+```python
+# apps/skills_svg.py
 
 COMMANDS: list[dict] = [
     {
@@ -40,10 +32,7 @@ COMMANDS: list[dict] = [
             f"{GREEN}DOST Scholar · engineering student{RESET}",
             f"{BLUE}Backend Development {RESET}{RED}RESTful APIs · SQL data models{RESET}",
             f"{BLUE}Frontend & Mobile   {RESET}{YELLOW}web apps · mobile apps{RESET}",
-            f"{BLUE}DevOps              {RESET}{CYAN}Docker containers · reverse proxies · deployment{RESET}",
-            f"{BLUE}Networking          {RESET}{GREEN}Cloudflare Tunnel · domains · infra{RESET}",
-            f"{BLUE}Embedded & Hardware {RESET}{RED}sensors · NFC · microcontrollers{RESET}",
-            f"{BLUE}Mechanical          {RESET}{YELLOW}CAD modeling · 3D design{RESET}",
+            # … 7 content lines …
             "",
             "",
             "",
@@ -55,7 +44,7 @@ COMMANDS: list[dict] = [
             "",
             "",
             "",
-            "",
+            "",  # pad to 20
         ],
         "custom_start_delay": 0.5,
         "custom_end_delay": 10.0,
@@ -64,13 +53,7 @@ COMMANDS: list[dict] = [
         "input": "./get_tech_stack.sh",
         "output": [
             f"{BLUE}Programming      {RESET}{RED}Python · C++ · JavaScript · Rust · TypeScript · SQL{RESET}",
-            f"{BLUE}Frameworks       {RESET}{YELLOW}Flask · FastAPI · Django · SQLAlchemy · Jinja2 · Bootstrap{RESET}",
-            f"{BLUE}Databases        {RESET}{CYAN}MySQL · SQLite{RESET}",
-            f"{BLUE}Servers & Deploy {RESET}{GREEN}Node.js · Docker · Caddy · Nginx · Gunicorn · Granian · Debian{RESET}",
-            f"{BLUE}Networking       {RESET}{RED}Cloudflare Tunnel · Tailscale Funnel · Domain Management{RESET}",
-            f"{BLUE}Mobile           {RESET}{YELLOW}React Native · Expo{RESET}",
-            f"{BLUE}Hardware         {RESET}{CYAN}Arduino · ESP32 · RP2040 · Raspberry Pi · STM32 · NTAG215{RESET}",
-            f"{BLUE}Mechanical       {RESET}{GREEN}AutoCAD · OnShape · Fusion 360 · Cura{RESET}",
+            # … 8 content lines …
             "",
             "",
             "",
@@ -149,3 +132,53 @@ def render_skills_svg() -> str:
     for entry in COMMANDS:
         view.add_line(entry)
     return view.render()
+```
+
+### Pane Details
+
+| Script | Lines (non-blank) | Content |
+|--------|-------------------|---------|
+| `get_summary.sh` | 7 | DOST scholar, backend, frontend/mobile, devops, networking, embedded, mechanical |
+| `get_tech_stack.sh` | 8 | programming langs, frameworks, DBs, servers, networking, mobile, hardware, mechanical |
+| `get_certification.sh` | 1 | SO2 — DOLE Accredited Safety Officer 2 · BOSH · 2024 |
+| `get_projects.sh` | 5 | GateKeeper / Portfolio / Water Billing / SolveSpace / NovaProtocol with labels |
+
+Each `output` is exactly `max_line` (20) rows — content + blank `""` padding. Blank output lines still generate a `Row` (empty `<text>`), so the timeline has uniform 20-row panes and the renderer's `y` chain scrolls one full viewport per pane.
+
+### Timing
+
+- `custom_start_delay=0.5` — short prompt beat before each script types.
+- `custom_end_delay=10.0` — hold the pane for 10 seconds so the profile viewer can read before the next pane scrolls in. GitHub's camo cache is `no-store`, but the SVG itself still plays for ~40s before settling.
+
+### Renderer
+
+`max_line=20` → height `60 + 20*20 + 6 = 466` (viewBox `880×466`) — tallest badge, stands out in the profile's vertical stack.
+
+`delay_per_char_input=0.05` — slightly slower than name/console (0.03) because these prompts are read as headings.
+
+## Preview
+
+```html
+<object type="image/svg+xml" data="/skills.svg" style="max-width:100%;"></object>
+```
+
+Locally: `http://127.0.0.1:7051/test` shows the 466px pane with scroll.
+
+## Tests
+
+`tests/test_routes.py::test_skills_svg_route`:
+
+```python
+def test_skills_svg_route():
+    with TestClient(create_app()) as client:
+        r = client.get("/skills.svg")
+        assert r.headers["content-type"].startswith("image/svg+xml")
+        assert b"Python" in r.content  # tech stack pane
+        assert b"GateKeeper" in r.content  # projects pane
+```
+
+When editing pane strings, keep at least one searchable token per pane stable (`"Python"`, `"GateKeeper"`, `"SO2"`) so the route test remains meaningful.
+
+## Privacy Note
+
+Only public, non-sensitive info — no contact, experience dates, or private URLs. See the module docstring: “Only public, non-sensitive info (no contact/experience details).”

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from apps.name_svg import render_name_svg
 
 

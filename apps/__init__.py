@@ -31,7 +31,13 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def access_log(request, call_next):
         response = await call_next(request)
-        logger.info('%s %s %s "%s"', request.client.host if request.client else "-", request.method, response.status_code, request.url.path)
+        logger.info(
+            '%s %s %s "%s"',
+            request.client.host if request.client else "-",
+            request.method,
+            response.status_code,
+            request.url.path,
+        )
         return response
 
     static_dir = _PROJECT_ROOT / "static"

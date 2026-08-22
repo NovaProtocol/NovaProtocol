@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from utilities.terminal_svg import TerminalSVG, parse_ansi
 
 
@@ -51,7 +53,7 @@ def test_terminal_svg_animates():
     svg = v.render()
     assert "tspan" in svg
     assert 'attributeName="opacity"' in svg
-    assert "fill=\"freeze\"" in svg
+    assert 'fill="freeze"' in svg
 
 
 def test_terminal_svg_height_scales():
@@ -79,23 +81,26 @@ def test_terminal_svg_custom_prefix_and_delays():
     v.delay_per_char_input = 0
     v.delay_per_line_input = 0.0
     v.delay_after_entry = 0.0
-    v.add_line({
-        "input": "ls",
-        "output": ["file"],
-        "custom_prefix": "root@box:~# ",
-        "custom_start_delay": 1.0,
-        "custom_end_delay": 0.5,
-    })
+    v.add_line(
+        {
+            "input": "ls",
+            "output": ["file"],
+            "custom_prefix": "root@box:~# ",
+            "custom_start_delay": 1.0,
+            "custom_end_delay": 0.5,
+        }
+    )
     svg = v.render()
     # custom prefix chars present (root@box)
     for ch in "root@box":
         assert f">{ch}<" in svg or ch in svg
     # start_delay: prefix appears at t=0, INPUT chars wait for the delay.
     import re
+
     prefix_begin = float(re.search(r'<tspan[^>]*>r<animate[^>]*begin="([0-9.]+)s"', svg).group(1))
     input_begin = float(re.search(r'<tspan[^>]*>l<animate[^>]*begin="([0-9.]+)s"', svg).group(1))
     assert prefix_begin == 0.0  # prompt shows immediately
-    assert input_begin >= 1.0   # input waits for custom_start_delay
+    assert input_begin >= 1.0  # input waits for custom_start_delay
 
 
 def test_terminal_svg_default_prefix_still_used():
@@ -115,6 +120,7 @@ def test_terminal_svg_view_level_input_delay():
     v.add_line({"input": "ls", "output": []})
     svg = v.render()
     import re
+
     # prompt shows at 0, input waits for the delay
     p = float(re.search(r'<tspan[^>]*>p<animate[^>]*begin="([0-9.]+)s"', svg).group(1))
     i = float(re.search(r'<tspan[^>]*>l<animate[^>]*begin="([0-9.]+)s"', svg).group(1))
@@ -131,6 +137,7 @@ def test_terminal_svg_view_level_after_entry_delay():
     v.add_line({"input": "two", "output": []})
     svg = v.render()
     import re
+
     # 'e' of first input "one", 'w' of second input "two"
     t1 = float(re.search(r'<tspan[^>]*>e<animate[^>]*begin="([0-9.]+)s"', svg).group(1))
     t2 = float(re.search(r'<tspan[^>]*>w<animate[^>]*begin="([0-9.]+)s"', svg).group(1))

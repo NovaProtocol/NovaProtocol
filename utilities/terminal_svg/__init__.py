@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from utilities.terminal_svg.ansi import (
     ANSI_FG,
     BG,
@@ -8,24 +10,24 @@ from utilities.terminal_svg.ansi import (
     GREEN_DIM,
     PINK,
     RED,
-    Style,
     YELLOW,
+    Style,
     parse_ansi,
 )
 from utilities.terminal_svg.core import TerminalSVG
 
 __all__ = [
-    "TerminalSVG",
-    "Style",
-    "parse_ansi",
     "ANSI_FG",
     "BG",
     "BLUE",
+    "FONT",
+    "GRAY",
     "GREEN",
     "GREEN_DIM",
-    "GRAY",
+    "PINK",
     "RED",
     "YELLOW",
-    "PINK",
-    "FONT",
+    "Style",
+    "TerminalSVG",
+    "parse_ansi",
 ]
