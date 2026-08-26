@@ -76,4 +76,3 @@ nav:
       - Skills Badge: svg-badges/skills-svg.md
   - API Reference: api-reference.md
   - Docker & Deployment: docker.md
-  - Why No gRPC: why-no-grpc.md
