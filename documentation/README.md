@@ -13,7 +13,6 @@ Full project documentation for **NovaProtocol**, built with [MkDocs](https://www
 | [SVG Badges](./docs/svg-badges/index.md) | name.svg / console.svg / skills.svg generation |
 | [API Reference](./docs/api-reference.md) | HTTP routes and SVG endpoints |
 | [Docker](./docs/docker.md) | Compose, Caddy, and deployment |
-| [Why No gRPC](./docs/why-no-grpc.md) | Why this monolith has no gRPC |
 
 ## Building Locally
 

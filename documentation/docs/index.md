@@ -15,7 +15,6 @@ Public **FastAPI asset server** that renders the three animated terminal SVGs em
 - `GET /health` bypasses everything — tunnel and compose healthchecks.
 - `GET /documentation/*` is **public** (no `forward_auth`) — docs are safe to embed and cache like the SVGs.
 - All other routes (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) are public by design — no auth gate.
-- No gRPC — single-service monolith with no container-to-container RPC (see [Why No gRPC](why-no-grpc.md)).
 
 ```mermaid
 graph TB
@@ -31,12 +30,11 @@ graph TB
 ## Quick Links
 
 - [Getting Started](getting-started.md) — run locally and in Docker.
-- [Architecture](architecture.md) — layout, factory, routing, and why there is no gRPC.
+- [Architecture](architecture.md) — layout, factory, and routing.
 - [Terminal SVG](terminal-svg/index.md) — the `utilities/terminal_svg` engine.
 - [SVG Badges](svg-badges/index.md) — how the three badges are built.
 - [API Reference](api-reference.md) — HTTP routes, caching headers, and content types.
 - [Docker & Deployment](docker.md) — compose, Caddy, and prod notes.
-- [Why No gRPC](why-no-grpc.md) — documented decision to stay HTTP-only.
 
 ## Relationship to House Reference
 

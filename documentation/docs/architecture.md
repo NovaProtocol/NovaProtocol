@@ -157,12 +157,6 @@ graph TB
 
 ---
 
-## Why No gRPC
-
-This project is a **single-service monolith** with no container-to-container RPC. House `fastapi/grpc` and `docker/compose.md` → "Internal vs public URLs" describe `api:50051` + `API_INTERNAL_URL` / `API_GRPC_ADDR` for multi-service systems (WBS, SolveSpace executors). NovaProtocol has no internal API to call — all data is in-process (`COMMANDS` + `utilities/terminal_svg`), and the only network hop is Caddy → app (HTTP). Adding gRPC would add `grpcio`/`protobuf` deps, `.proto` compilation, and an unused `expose: ["50051"]` with no consumer. Documented fully in [Why No gRPC](why-no-grpc.md).
-
----
-
 ## Testing
 
 - `tests/test_routes.py` — health and SVG routes via `TestClient(create_app())` (health JSON, content-type, cache-control, presence checks for "Khyles", "nova@ProjectNova", "Python").
