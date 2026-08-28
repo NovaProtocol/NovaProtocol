@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ code }} {{ title }}</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'JetBrains Mono',monospace;background:#0a0a12;color:#c8c8d8;display:flex;align-items:center;justify-content:center;min-height:100vh;padding:2rem}
+.card{text-align:center;max-width:520px;width:100%;border:1px solid #1e1e2e;background:#12121a;border-radius:12px;padding:2.5rem 2rem}
+.code{font-size:4.5rem;font-weight:800;color:#64ffda;line-height:1}
+h1{font-size:1.4rem;margin:.6rem 0;color:#fff}
+p{color:#8888a0;margin-bottom:1.5rem}
+a{display:inline-block;padding:.55rem 1.4rem;border-radius:8px;background:#64ffda;color:#0a0a0f;font-weight:600;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="code">{{ code }}</div>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <a href="/">Back to Home</a>
+</div>
+</body>
+</html>
