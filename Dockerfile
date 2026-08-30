@@ -17,6 +17,6 @@ RUN python3 -m compileall -q /app 2>/dev/null || true
 RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 7051
+EXPOSE 8000
 
-CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "7051", "--workers", "1", "wsgi:app"]
+CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "wsgi:app"]

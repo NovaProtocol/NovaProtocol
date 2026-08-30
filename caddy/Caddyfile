@@ -1,6 +1,6 @@
 :7050 {
     handle /health {
-        reverse_proxy novaprotocol_main:7051
+        reverse_proxy novaprotocol_main:8000
     }
 
     handle_path /documentation/* {
@@ -8,6 +8,6 @@
     }
 
     handle {
-        reverse_proxy novaprotocol_main:7051
+        reverse_proxy novaprotocol_main:8000
     }
 }
