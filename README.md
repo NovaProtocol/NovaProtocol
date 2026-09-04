@@ -7,19 +7,19 @@ Public FastAPI asset server that renders animated terminal SVGs for the [NovaPro
 
 <div align="center">
 
-![name](https://github.projectnova.download/name.svg)
+![name](https://github.projectnova.download/public/name.svg)
 
 </div>
 
 <div align="center">
 
-![skills](https://github.projectnova.download/skills.svg)
+![skills](https://github.projectnova.download/public/skills.svg)
 
 </div>
 
 <div align="center">
 
-![console](https://github.projectnova.download/console.svg)
+![console](https://github.projectnova.download/public/console.svg)
 
 </div>
 
@@ -27,8 +27,8 @@ Public FastAPI asset server that renders animated terminal SVGs for the [NovaPro
 
 ```
 Request → Caddy :7050 → novaprotocol_main:8000 → FastAPI apps/routes.py
-                           ├─ /name.svg, /console.svg, /skills.svg → svgwrite → image/svg+xml
-                           ├─ /public/*.svg (alias) → same handlers, for https://github.projectnova.download/public/*
+                           ├─ /public/*.svg → svgwrite → image/svg+xml (canonical)
+                           ├─ /name.svg, /console.svg, /skills.svg → 301 → /public/*.svg (legacy)
                            └─ /test → HTML gallery, /health → ok
 ```
 
@@ -64,8 +64,8 @@ No `.env` file is committed. `SECRET_KEY` is not used — this service has no au
 | Route | Purpose |
 |-------|---------|
 | `GET /`, `GET /health` | Liveness |
-| `GET /name.svg`, `/console.svg`, `/skills.svg` | Badges (`image/svg+xml`, `no-store`) |
-| `GET /public/name.svg`, `/public/console.svg`, `/public/skills.svg` | Same as above under `public/*` (use `https://github.projectnova.download/public/*.svg` for embeds — single rule to publicise) |
+| `GET /public/name.svg`, `/public/console.svg`, `/public/skills.svg` | Badges (`image/svg+xml`, `no-store`) — canonical `https://github.projectnova.download/public/*.svg` |
+| `GET /name.svg`, `/console.svg`, `/skills.svg` | `301` → `/public/*.svg` (legacy, kept for camo cache) |
 | `GET /public`, `GET /test` | Index / gallery |
 | `GET /documentation/*` | MkDocs |
 
