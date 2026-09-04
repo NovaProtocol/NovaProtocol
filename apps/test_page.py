@@ -16,7 +16,7 @@ def _render_svg_gallery() -> str:
         f'margin:0 auto 24px;max-width:900px;display:flex;justify-content:center;">'
         f'<object type="image/svg+xml" data="{path}" '
         f'style="max-width:100%;"></object></div>'
-        for path in ("/name.svg", "/skills.svg", "/console.svg")
+        for path in ("/public/name.svg", "/public/skills.svg", "/public/console.svg")
     )
     return f"""<!doctype html>
 <html lang="en">
