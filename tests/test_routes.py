@@ -12,7 +12,7 @@ def test_health_ok():
 
 def test_name_svg_route():
     with TestClient(create_app()) as client:
-        r = client.get("/name.svg")
+        r = client.get("/public/name.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
         assert r.headers["cache-control"] == "no-store, max-age=0"
@@ -21,7 +21,7 @@ def test_name_svg_route():
 
 def test_console_svg_route():
     with TestClient(create_app()) as client:
-        r = client.get("/console.svg")
+        r = client.get("/public/console.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
         assert r.headers["cache-control"] == "no-store, max-age=0"
@@ -30,12 +30,24 @@ def test_console_svg_route():
 
 def test_skills_svg_route():
     with TestClient(create_app()) as client:
-        r = client.get("/skills.svg")
+        r = client.get("/public/skills.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
         assert r.headers["cache-control"] == "no-store, max-age=0"
         assert b"Python" in r.content  # tech stack
         assert b"GateKeeper" in r.content  # projects
+
+
+def test_legacy_svg_redirects():
+    with TestClient(create_app()) as client:
+        for path, target in [
+            ("/name.svg", "/public/name.svg"),
+            ("/console.svg", "/public/console.svg"),
+            ("/skills.svg", "/public/skills.svg"),
+        ]:
+            r = client.get(path, follow_redirects=False)
+            assert r.status_code == 301
+            assert r.headers["location"] == target
 
 
 def test_old_typing_route_gone():

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from apps import console_svg, name_svg, skills_svg
 
@@ -20,31 +20,19 @@ async def health():
     return {"status": "ok"}
 
 
-@router.get("/name.svg")
+@router.get("/name.svg", include_in_schema=False)
 async def name_route():
-    return Response(
-        content=name_svg.render_name_svg(),
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+    return RedirectResponse(url="/public/name.svg", status_code=301)
 
 
-@router.get("/console.svg")
+@router.get("/console.svg", include_in_schema=False)
 async def console_route():
-    return Response(
-        content=console_svg.render_console_svg(),
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+    return RedirectResponse(url="/public/console.svg", status_code=301)
 
 
-@router.get("/skills.svg")
+@router.get("/skills.svg", include_in_schema=False)
 async def skills_route():
-    return Response(
-        content=skills_svg.render_skills_svg(),
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+    return RedirectResponse(url="/public/skills.svg", status_code=301)
 
 
 @router.get("/public/name.svg")
@@ -82,7 +70,7 @@ async def public_index():
         "<li><a href='/public/name.svg'>/public/name.svg</a></li>"
         "<li><a href='/public/skills.svg'>/public/skills.svg</a></li>"
         "<li><a href='/public/console.svg'>/public/console.svg</a></li>"
-        "</ul><p>Also available at <code>/name.svg</code> etc. Use <code>https://github.projectnova.download/public/*.svg</code> for GitHub embeds.</p>"
+        "</ul><p>Canonical prefix is <code>https://github.projectnova.download/public/*.svg</code> for GitHub embeds. Legacy <code>/name.svg</code> etc. 301 to <code>/public/*.svg</code>.</p>"
         "</body></html>"
     )
 

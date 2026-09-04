@@ -48,7 +48,7 @@ curl -s https://github.projectnova.download/health  # prod via tunnel
 
 ---
 
-### `GET /name.svg`
+### `GET /public/name.svg`
 
 Name badge — NOVA block art + identity. See [Name Badge](svg-badges/name-svg.md).
 
@@ -57,7 +57,7 @@ Name badge — NOVA block art + identity. See [Name Badge](svg-badges/name-svg.m
 - **Example:**
 
 ```bash
-curl -s http://127.0.0.1:7051/name.svg | head -c 200
+curl -s http://127.0.0.1:8000/public/name.svg | head -c 200
 # <?xml version="1.0" encoding="utf-8" ?>
 # <svg viewBox="0 0 880 226" ...>
 ```
@@ -65,12 +65,12 @@ curl -s http://127.0.0.1:7051/name.svg | head -c 200
 - **Embed:**
 
 ```html
-<img src="https://github.projectnova.download/name.svg" alt="name" />
+<img src="https://github.projectnova.download/public/name.svg" alt="name" />
 ```
 
 ---
 
-### `GET /console.svg`
+### `GET /public/console.svg`
 
 Console badge — boot + compose + tunnel bring-up narrative. See [Console Badge](svg-badges/console-svg.md).
 
@@ -79,12 +79,12 @@ Console badge — boot + compose + tunnel bring-up narrative. See [Console Badge
 - **Embed:**
 
 ```html
-<img src="https://github.projectnova.download/console.svg" alt="console" />
+<img src="https://github.projectnova.download/public/console.svg" alt="console" />
 ```
 
 ---
 
-### `GET /skills.svg`
+### `GET /public/skills.svg`
 
 Skills badge — career panes (summary, stack, cert, projects). See [Skills Badge](svg-badges/skills-svg.md).
 
@@ -93,16 +93,16 @@ Skills badge — career panes (summary, stack, cert, projects). See [Skills Badg
 - **Embed:**
 
 ```html
-<img src="https://github.projectnova.download/skills.svg" alt="skills" />
+<img src="https://github.projectnova.download/public/skills.svg" alt="skills" />
 ```
 
 ---
 
-### `GET /public/name.svg`, `/public/console.svg`, `/public/skills.svg`
+### `GET /name.svg`, `/console.svg`, `/skills.svg` (legacy)
 
-Public alias for GitHub embeds — same handlers as `/name.svg` etc., reachable at `https://github.projectnova.download/public/*.svg`. Prefer this prefix when gating later: one rule `public/* → none`.
+Legacy aliases — `301` to `/public/*.svg` (kept for camo cache, will not be documented as canonical). Prefer `https://github.projectnova.download/public/*.svg`.
 
-- **Response:** `200 image/svg+xml`, `Cache-Control: no-store, max-age=0`
+- **Response:** `301 Location: /public/*.svg`
 
 ### `GET /public`
 
@@ -121,9 +121,9 @@ Live SVG gallery — self-contained HTML page embedding the three live badges vi
 <head>…</head>
 <body>
 <h1>Live profile assets</h1>
-<object type="image/svg+xml" data="/name.svg"></object>
-<object type="image/svg+xml" data="/skills.svg"></object>
-<object type="image/svg+xml" data="/console.svg"></object>
+<object type="image/svg+xml" data="/public/name.svg"></object>
+<object type="image/svg+xml" data="/public/skills.svg"></object>
+<object type="image/svg+xml" data="/public/console.svg"></object>
 </body>
 </html>
 ```
@@ -137,7 +137,8 @@ Live SVG gallery — self-contained HTML page embedding the three live badges vi
 | Route | `Content-Type` | `Cache-Control` |
 |-------|----------------|-----------------|
 | `/`, `/health` | `application/json` | *(none)* — JSON, not cached by camo |
-| `/name.svg`, `/console.svg`, `/skills.svg` | `image/svg+xml` | `no-store, max-age=0` |
+| `/public/name.svg`, `/public/console.svg`, `/public/skills.svg` | `image/svg+xml` | `no-store, max-age=0` |
+| `/name.svg`, `/console.svg`, `/skills.svg` | `301 → /public/*.svg` | *(redirect)* |
 | `/test` | `text/html; charset=utf-8` | *(none)* |
 | `/documentation/*` (docs service) | `text/html` / assets | *(docs FastAPI defaults)* |
 
@@ -173,7 +174,7 @@ The app's `APIRouter` does **not** include `/documentation/*` — that prefix is
 
 ```python
 def test_health_ok(): ...
-def test_name_svg_route(): ...
+def test_name_svg_route(): ...  # now 301 → /public/name.svg
 def test_console_svg_route(): ...
 def test_skills_svg_route(): ...
 def test_old_typing_route_gone(): ...
