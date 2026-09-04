@@ -98,6 +98,16 @@ Skills badge — career panes (summary, stack, cert, projects). See [Skills Badg
 
 ---
 
+### `GET /public/name.svg`, `/public/console.svg`, `/public/skills.svg`
+
+Public alias for GitHub embeds — same handlers as `/name.svg` etc., reachable at `https://github.projectnova.download/public/*.svg`. Prefer this prefix when gating later: one rule `public/* → none`.
+
+- **Response:** `200 image/svg+xml`, `Cache-Control: no-store, max-age=0`
+
+### `GET /public`
+
+Index of public assets — HTML listing `/public/name.svg`, `/public/skills.svg`, `/public/console.svg`.
+
 ### `GET /test`
 
 Live SVG gallery — self-contained HTML page embedding the three live badges via `<object>` so SMIL animations run even though GitHub's Markdown strips `<object>`.
