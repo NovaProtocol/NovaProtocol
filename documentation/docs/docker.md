@@ -15,7 +15,7 @@ services:
     environment:
       DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:?DEPLOYMENT_TYPE is required}
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7051/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
       interval: 30s
       timeout: 5s
       retries: 3
@@ -50,10 +50,14 @@ services:
       - "127.0.0.1:7050:7050"
     networks:
       - default
+      - gatekeeper_dynamic
       - cloudflared-tunnel
 
 networks:
   default:
+  gatekeeper_dynamic:
+    external: true
+    name: gatekeeper_dynamic
   cloudflared-tunnel:
     external: true
     name: cloudflared-tunnel_default
@@ -63,11 +67,11 @@ networks:
 
 | Compose service | `container_name` | What |
 |----------------|------------------|------|
-| `app` | `novaprotocol_main` | FastAPI app on `7051` |
+| `app` | `novaprotocol_main` | FastAPI app on `8000` |
 | `documentation` | `novaprotocol_documentation` | MkDocs FastAPI on `8005` |
 | `caddy` | `novaprotocol_caddy` | Caddy on `7050` |
 
-Caddy proxies to `container_name` (`novaprotocol_main:7051`, `novaprotocol_documentation:8005`), **not** the generic service name `app` — avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel_default` would resolve together (see `reference/docker/compose.md`).
+Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app` — avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel_default` / `gatekeeper_dynamic` would resolve together (see `reference/docker/compose.md`).
 
 ### Environment
 
@@ -91,7 +95,7 @@ Verify:
 ```bash
 docker inspect novaprotocol_main --format '{{.State.Health.Status}}'           # healthy
 docker inspect novaprotocol_documentation --format '{{.State.Health.Status}}'  # healthy
-curl -s http://127.0.0.1:7051/health   # direct app
+curl -s http://127.0.0.1:8000/health   # direct app
 curl -s http://127.0.0.1:8005/health   # direct docs (from sibling or localhost if published)
 curl -s http://127.0.0.1:7050/health   # via Caddy
 curl -s http://127.0.0.1:7050/documentation/ | head  # docs via Caddy (public)
@@ -123,16 +127,16 @@ RUN python3 -m compileall -q /app 2>/dev/null || true
 RUN useradd --create-home --uid 10001 appuser && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 7051
+EXPOSE 8000
 
-CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "7051", "--workers", "1", "wsgi:app"]
+CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "wsgi:app"]
 ```
 
 - `fonts-dejavu-core` ensures `DejaVu Sans Mono` metrics for badge layout.
 - `requirements.txt` is copied and pip-installed **before** `COPY . .` so Docker caches the pip layer.
 - `python -m compileall` catches syntax errors at build time.
 - Non-root `USER appuser` (uid `10001`) — `docker run --rm novaprotocol_main whoami` → `appuser`.
-- `EXPOSE 7051` matches compose/Caddy; `CMD` is exec-form granian ASGI with the `wsgi:app` target.
+- `EXPOSE 8000` matches compose/Caddy; `CMD` is exec-form granian ASGI with the `wsgi:app` target.
 
 ### Documentation (`documentation/Dockerfile`) — same shape, `mkdocs build`
 
@@ -182,7 +186,7 @@ COPY Caddyfile /etc/caddy/Caddyfile
 ```caddy
 :7050 {
     handle /health {
-        reverse_proxy novaprotocol_main:7051
+        reverse_proxy novaprotocol_main:8000
     }
 
     handle_path /documentation/* {
@@ -190,7 +194,7 @@ COPY Caddyfile /etc/caddy/Caddyfile
     }
 
     handle {
-        reverse_proxy novaprotocol_main:7051
+        reverse_proxy novaprotocol_main:8000
     }
 }
 ```
@@ -199,9 +203,9 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 | Path | Caddy directive | Target | Auth |
 |------|-----------------|--------|------|
-| `/health` | `handle /health` | `novaprotocol_main:7051` | public — tunnel + compose probe |
+| `/health` | `handle /health` | `novaprotocol_main:8000` | public — tunnel + compose probe |
 | `/documentation/*` | `handle_path /documentation/*` | `novaprotocol_documentation:8005` | **public** — prefix-stripped |
-| all else (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) | `handle` catch-all | `novaprotocol_main:7051` | **public** |
+| all else (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) | `handle` catch-all | `novaprotocol_main:8000` | **public** |
 
 `handle_path` strips the prefix before proxying — the docs app sees `/` for `GET /documentation/` and `/getting-started/` for `GET /documentation/getting-started/`.
 
@@ -247,7 +251,7 @@ House rule: ports allotted in groups of **10**. NovaProtocol owns the `7050`s:
 | Port | Use |
 |------|-----|
 | `7050` | Caddy `http` — `127.0.0.1:7050:7050` (via `cloudflared tunnel` → `github.projectnova.download`) |
-| `7051` | App granian ASGI — `novaprotocol_main:7051` (`uvicorn` on `7051` in dev via `run.py`) |
+| `8000` | App granian ASGI — `novaprotocol_main:8000` (`uvicorn` on `8000` in dev via `run.py`) |
 | `8005` | Documentation granian ASGI — `novaprotocol_documentation:8005` (`expose:` only, via Caddy `/documentation/*`) |
 
 Verify: `docker compose ps` must show `127.0.0.1:7050->7050/tcp`, not `0.0.0.0`.
@@ -258,7 +262,7 @@ Verify: `docker compose ps` must show `127.0.0.1:7050->7050/tcp`, not `0.0.0.0`.
 
 | Path | Local `run.py` | Prod `granian` |
 |------|----------------|----------------|
-| Factory | `uvicorn "apps:create_app" factory=True --reload` | `granian --interface asgi --host 0.0.0.0 --port 7051 --workers 1 wsgi:app` |
-| Ports | `7051` app, `8005` docs (if run), no Caddy | `7050` Caddy + `7051` app + `8005` docs |
+| Factory | `uvicorn "apps:create_app" factory=True --reload` | `granian --interface asgi --host 0.0.0.0 --port 8000 --workers 1 wsgi:app` |
+| Ports | `8000` app, `8005` docs (if run), no Caddy | `7050` Caddy + `8000` app + `8005` docs |
 | Reload | in `debug` | never |
 | User | your shell user | `appuser` uid `10001` |

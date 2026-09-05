@@ -162,7 +162,7 @@ Each `output` is exactly `max_line` (20) rows — content + blank `""` padding. 
 <object type="image/svg+xml" data="/skills.svg" style="max-width:100%;"></object>
 ```
 
-Locally: `http://127.0.0.1:7051/test` shows the 466px pane with scroll.
+Locally: `http://127.0.0.1:8000/test` shows the 466px pane with scroll.
 
 ## Tests
 

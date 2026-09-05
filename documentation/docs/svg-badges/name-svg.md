@@ -78,7 +78,7 @@ Embed or fetch directly:
 <object type="image/svg+xml" data="/name.svg" style="max-width:100%;"></object>
 ```
 
-Or `curl -s http://127.0.0.1:7051/name.svg | head -c 200`.
+Or `curl -s http://127.0.0.1:8000/name.svg | head -c 200`.
 
 ## Tests
 

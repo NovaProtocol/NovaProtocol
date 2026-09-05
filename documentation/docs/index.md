@@ -1,6 +1,6 @@
 # NovaProtocol
 
-Public **FastAPI asset server** that renders the three animated terminal SVGs embedded in the [NovaProtocol GitHub profile](https://github.com/NovaProtocol) — `name.svg`, `console.svg`, and `skills.svg`. Served as a monolith behind Caddy on `:7050` (app on `:7051`) and intentionally **ungated** (no GateKeeper), because image embedders have no cookie jar.
+Public **FastAPI asset server** that renders the three animated terminal SVGs embedded in the [NovaProtocol GitHub profile](https://github.com/NovaProtocol) — `name.svg`, `console.svg`, and `skills.svg`. Served as a monolith behind Caddy on `:7050` (app on `:8000`) and intentionally **ungated** (no GateKeeper), because image embedders have no cookie jar.
 
 **Stack:** Python 3.14 · FastAPI + granian (ASGI) · `utilities/terminal_svg` (custom ANSI → SMIL SVG library) · `svgwrite` · Caddy 2 (Alpine) · MkDocs Material.
 
@@ -8,8 +8,8 @@ Public **FastAPI asset server** that renders the three animated terminal SVGs em
 
 | Service | Container | Internal Port | Caddy Route | Network |
 |---------|-----------|---------------|-------------|---------|
-| **Caddy** | `novaprotocol_caddy` | `:7050` | — | `default`, `cloudflared-tunnel` |
-| **App (monolith)** | `novaprotocol_main` | `:7051` | `/*` via `novaprotocol_main:7051` | `default` |
+| **Caddy** | `novaprotocol_caddy` | `:7050` | — | `default`, `gatekeeper_dynamic`, `cloudflared-tunnel` |
+| **App (monolith)** | `novaprotocol_main` | `:8000` | `/*` via `novaprotocol_main:8000` | `default` |
 | **Documentation** | `novaprotocol_documentation` | `:8005` | `/documentation/*` via `novaprotocol_documentation:8005` | `default` |
 
 - `GET /health` bypasses everything — tunnel and compose healthchecks.
@@ -19,7 +19,7 @@ Public **FastAPI asset server** that renders the three animated terminal SVGs em
 ```mermaid
 graph TB
     TUN["Cloudflare Tunnel<br/>github.projectnova.download"] --> CADDY["Caddy :7050<br/>novaprotocol_caddy"]
-    CADDY -->|" /health (public) "| APP["novaprotocol_main :7051<br/>FastAPI + granian<br/>apps/ factory"]
+    CADDY -->|" /health (public) "| APP["novaprotocol_main :8000<br/>FastAPI + granian<br/>apps/ factory"]
     CADDY -->|" /name.svg, /console.svg, /skills.svg (public) "| APP
     CADDY -->|" /documentation/* (public) "| DOCS["novaprotocol_documentation :8005<br/>MkDocs + FastAPI + granian"]
     APP --> SVG["apps/*_svg.py<br/>name / console / skills renderers"]

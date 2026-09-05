@@ -4,11 +4,11 @@ NovaProtocol is an **HTTP-only** asset server — every route is a `GET` on the 
 
 ## Base URL
 
-- Local dev: `http://127.0.0.1:7051`
+- Local dev: `http://127.0.0.1:8000`
 - Via Caddy: `http://127.0.0.1:7050` (same routes, `/health` handled explicitly)
-- Production: `https://github.projectnova.download` (Cloudflare Tunnel → `127.0.0.1:7050` → `novaprotocol_main:7051`)
+- Production: `https://github.projectnova.download` (Cloudflare Tunnel → `127.0.0.1:7050` → `novaprotocol_main:8000`)
 
-Caddy does not strip prefixes for the app — it `reverse_proxy novaprotocol_main:7051` with the original path. `/documentation/*` is the only `handle_path` (docs service, see [Docker & Deployment](docker.md)).
+Caddy does not strip prefixes for the app — it `reverse_proxy novaprotocol_main:8000` with the original path. `/documentation/*` is the only `handle_path` (docs service, see [Docker & Deployment](docker.md)).
 
 ## Endpoints
 
@@ -22,7 +22,7 @@ Liveness summary — also serves as the app's root info.
 {"service": "NovaProtocol Assets", "status": "ok"}
 ```
 
-- **Caddy:** public (falls through to `handle { reverse_proxy novaprotocol_main:7051 }`).
+- **Caddy:** public (falls through to `handle { reverse_proxy novaprotocol_main:8000 }`).
 - **Use:** quick check that the factory booted.
 
 ---
@@ -37,11 +37,11 @@ Health probe for compose and tunnel checks.
 {"status": "ok"}
 ```
 
-- **Caddy:** `handle /health { reverse_proxy novaprotocol_main:7051 }` — explicit public bypass.
-- **Compose healthcheck:** `python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:7051/health')"` with `interval: 30s`, `timeout: 5s`, `retries: 3`, `start_period: 10s`.
+- **Caddy:** `handle /health { reverse_proxy novaprotocol_main:8000 }` — explicit public bypass.
+- **Compose healthcheck:** `python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"` with `interval: 30s`, `timeout: 5s`, `retries: 3`, `start_period: 10s`.
 
 ```bash
-curl -s http://127.0.0.1:7051/health
+curl -s http://127.0.0.1:8000/health
 curl -s http://127.0.0.1:7050/health       # via Caddy
 curl -s https://github.projectnova.download/health  # prod via tunnel
 ```
@@ -128,7 +128,7 @@ Live SVG gallery — self-contained HTML page embedding the three live badges vi
 </html>
 ```
 
-- **Use:** manual QA — `http://127.0.0.1:7051/test` in dev, `https://github.projectnova.download/test` in prod. Unlike the SVG routes, this page is `text/html` and does not set `no-store`.
+- **Use:** manual QA — `http://127.0.0.1:8000/test` in dev, `https://github.projectnova.download/test` in prod. Unlike the SVG routes, this page is `text/html` and does not set `no-store`.
 
 ---
 
@@ -166,7 +166,7 @@ FastAPI auto-generates `/docs` (Swagger UI) and `/openapi.json` when `DEBUG=True
 
 ## Relationship to Docs Service
 
-The app's `APIRouter` does **not** include `/documentation/*` — that prefix is intercepted by Caddy (`handle_path /documentation/* → novaprotocol_documentation:8005`). The docs FastAPI serves MkDocs `site/` (see [Docker & Deployment](docker.md) and `documentation/app.py`). A request to `https://github.projectnova.download/documentation/` never reaches `novaprotocol_main:7051`.
+The app's `APIRouter` does **not** include `/documentation/*` — that prefix is intercepted by Caddy (`handle_path /documentation/* → novaprotocol_documentation:8005`). The docs FastAPI serves MkDocs `site/` (see [Docker & Deployment](docker.md) and `documentation/app.py`). A request to `https://github.projectnova.download/documentation/` never reaches `novaprotocol_main:8000`.
 
 ## Testing Routes
 
