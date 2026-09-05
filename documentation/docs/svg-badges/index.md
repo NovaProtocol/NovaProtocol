@@ -92,7 +92,7 @@ Per-entry overrides (`custom_prefix`, `custom_start_delay`, `custom_end_delay`) 
 1. Edit the `COMMANDS` list in `apps/name_svg.py` / `apps/console_svg.py` / `apps/skills_svg.py`.
 2. Colors are inline ANSI (`\x1b[32m`, `\x1b[34m`, …) — keep them inside the `input`/`output` strings.
 3. Pad `output` to exactly `max_line` rows if you want a “full screen” look (skills pads to 20 with `""` blanks).
-4. Restart the dev server (or `docker compose up -d --build app`) and hit `http://127.0.0.1:7051/<name>.svg` or `/test`.
+4. Restart the dev server (or `docker compose up -d --build app`) and hit `http://127.0.0.1:8000/<name>.svg` or `/test`.
 5. Add assertions in `tests/test_*_svg.py` if the badge's observable surface changes (see each badge page).
 
 ## Performance
