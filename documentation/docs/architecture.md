@@ -46,7 +46,7 @@ project/
 ├── documentation/         # MkDocs site (this site)
 ├── wsgi.py                # granian target wsgi:app — app = create_app()
 ├── run.py                 # uvicorn dev entrypoint — --mode debug|production
-├── Dockerfile             # python:3.14-slim, fonts-dejavu-core, appuser uid 10001, granian on 7051
+├── Dockerfile             # python:3.14-slim, fonts-dejavu-core, appuser uid 10001, granian on 8000
 └── compose.yaml           # app + caddy + documentation
 ```
 
@@ -140,14 +140,14 @@ Full deep-dives: [Terminal SVG Overview](terminal-svg/index.md), [SVG Badges](sv
 ```mermaid
 graph TB
     TUN["cloudflared tunnel<br/>external network<br/>cloudflared-tunnel_default"] --> CADDY
-    CADDY["Caddy<br/>:7050<br/>novaprotocol_caddy<br/>caddy:2-alpine"] --> APP["app<br/>novaprotocol_main:7051<br/>granian asgi<br/>python:3.14-slim"]
+    CADDY["Caddy<br/>:7050<br/>novaprotocol_caddy<br/>caddy:2-alpine"] --> APP["app<br/>novaprotocol_main:8000<br/>granian asgi<br/>python:3.14-slim"]
     CADDY --> DOCS["documentation<br/>novaprotocol_documentation:8005<br/>granian asgi"]
 ```
 
-- Caddy listens on `:7050` (`Caddyfile` site address `:7050`), matching `compose.yaml` `127.0.0.1:7050:7050` and the app's `EXPOSE 7051`.
-- `handle /health { reverse_proxy novaprotocol_main:7051 }` bypasses everything (tunnel and compose probes). No `forward_auth`.
+- Caddy listens on `:7050` (`Caddyfile` site address `:7050`), matching `compose.yaml` `127.0.0.1:7050:7050` and the app's `EXPOSE 8000`.
+- `handle /health { reverse_proxy novaprotocol_main:8000 }` bypasses everything (tunnel and compose probes). No `forward_auth`.
 - `handle_path /documentation/* { reverse_proxy novaprotocol_documentation:8005 }` — **public**, prefix-stripped (`handle_path`). Serves the prebuilt MkDocs `site/` via FastAPI on `:8005`.
-- `handle { reverse_proxy novaprotocol_main:7051 }` — everything else public (the three SVGs and `/test`).
+- `handle { reverse_proxy novaprotocol_main:8000 }` — everything else public (the three SVGs and `/test`).
 - Proxy targets use `container_name` (`novaprotocol_main`, `novaprotocol_documentation`), never the generic service name `app`, to avoid the shared-network DNS collision where every `app` alias on `cloudflared-tunnel_default` would resolve together (see `reference/docker/compose.md` → Shared-network DNS gotcha).
 - Compose: app and docs on `default`; caddy on `default` + `cloudflared-tunnel` (external). Caddy publishes `127.0.0.1:7050:7050` loopback-only.
 - Healthchecks: `python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:<port>/health')"` with 30s interval, 5s timeout, 3 retries.

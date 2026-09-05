@@ -35,7 +35,7 @@ COMMANDS = [
     # Logs + health
     {"input": "docker logs novaprotocol_main --tail 30",
      "output": [f"{GRAY}[INFO] Starting granian{RESET}", ...]},
-    {"input": "curl -s localhost:7051/health", "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"]},
+    {"input": "curl -s localhost:8000/health", "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"]},
 
     # Tunnel + public
     {"input": "cloudflared tunnel list",       "output": [f"{BLUE}ID ...{RESET}", "2a3b4c5d-... novaprotocol ..."]},

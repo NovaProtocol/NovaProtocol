@@ -36,12 +36,12 @@ export DEPLOYMENT_TYPE=debug   # or production
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 export DEPLOYMENT_TYPE=debug
-.venv/bin/python run.py            # uvicorn :7051, reload in debug
+.venv/bin/python run.py            # uvicorn :8000, reload in debug
 ```
 
-- Dev server: `http://127.0.0.1:7051/` and `http://127.0.0.1:7051/health`
-- Badge previews: `http://127.0.0.1:7051/name.svg`, `/console.svg`, `/skills.svg`
-- Live gallery: `http://127.0.0.1:7051/test` — embeds all three SVGs via `<object>` so SMIL runs.
+- Dev server: `http://127.0.0.1:8000/` and `http://127.0.0.1:8000/health`
+- Badge previews: `http://127.0.0.1:8000/name.svg`, `/console.svg`, `/skills.svg`
+- Live gallery: `http://127.0.0.1:8000/test` — embeds all three SVGs via `<object>` so SMIL runs.
 - `run.py` sets `os.environ["DEPLOYMENT_TYPE"]` from `--mode` and runs `uvicorn "apps:create_app" factory=True`.
 
 ---
@@ -60,7 +60,7 @@ docker compose logs -f app
 | `http://localhost:7050/` (via tunnel) | Public app — `GET /health` and the three SVGs are public |
 | `http://localhost:7050/health` | Health bypass (Caddy `handle /health`) |
 | `http://localhost:7050/documentation/` | MkDocs site — **public** (`handle_path /documentation/*` without `forward_auth`) |
-| `http://app:7051/health` (inside network) | Direct app health (compose healthcheck) |
+| `http://app:8000/health` (inside network) | Direct app health (compose healthcheck) |
 | `http://documentation:8005/health` (inside network) | Docs healthcheck |
 
 First build installs `requirements.txt` (FastAPI, granian, svgwrite) and `documentation/requirements.txt` (MkDocs) then runs `mkdocs build` inside the docs image.
@@ -120,4 +120,4 @@ The profile README (`README.md`) embeds the live badges:
 
 Each endpoint returns `image/svg+xml` with `Cache-Control: no-store, max-age=0` so GitHub's camo proxy does not stale-cache the animation. The SVG itself carries SMIL `<animate>` timing — no JavaScript is needed and none runs in the README context.
 
-To test locally, open `http://127.0.0.1:7051/test` — it renders the same three objects the profile does, but against your running app.
+To test locally, open `http://127.0.0.1:8000/test` — it renders the same three objects the profile does, but against your running app.

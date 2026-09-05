@@ -22,7 +22,7 @@ def main() -> None:
         "apps:create_app",
         factory=True,
         host="0.0.0.0",
-        port=7051,
+        port=8000,
         reload=args.mode == "debug",
     )
 
