@@ -31,6 +31,7 @@ def _render_svg_gallery() -> str:
 <body>
 <h1>Live profile assets</h1>
 {cards}
+<script src="/static/js/error.js"></script>
 </body>
 </html>
 """

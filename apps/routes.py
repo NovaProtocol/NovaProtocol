@@ -71,7 +71,7 @@ async def public_index():
         "<li><a href='/public/skills.svg'>/public/skills.svg</a></li>"
         "<li><a href='/public/console.svg'>/public/console.svg</a></li>"
         "</ul><p>Canonical prefix is <code>https://github.projectnova.download/public/*.svg</code> for GitHub embeds. Legacy <code>/name.svg</code> etc. 301 to <code>/public/*.svg</code>.</p>"
-        "</body></html>"
+        "<script src='/static/js/error.js'></script></body></html>"
     )
 
 

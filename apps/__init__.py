@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -8,31 +9,42 @@ from fastapi.staticfiles import StaticFiles
 
 from apps.config import get_config
 
-logger = logging.getLogger("access")
-logger.setLevel(logging.INFO)
-if not logger.handlers:
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    logger.addHandler(handler)
-    logger.propagate = False
+try:
+    import structlog  # type: ignore
+
+    _HAS_STRUCTLOG = True
+except ImportError:
+    _HAS_STRUCTLOG = False
 
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
+def _configure_logging() -> None:
+    if _HAS_STRUCTLOG:
+        try:
+            import structlog
+
+            structlog.configure(
+                processors=[
+                    structlog.contextvars.merge_contextvars,
+                    structlog.processors.add_log_level,
+                    structlog.processors.TimeStamper(fmt="iso"),
+                    structlog.processors.JSONRenderer(),
+                ],
+                wrapper_class=structlog.make_filtering_bound_logger(logging.NOTSET),
+                context_class=dict,
+                logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
+                cache_logger_on_first_use=True,
+            )
+            return
+        except Exception:
+            pass
+    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
+
+
 def create_app() -> FastAPI:
+    _configure_logging()
     config = get_config()
-
-    from pathlib import Path as _Path
-    from fastapi.responses import HTMLResponse, JSONResponse
-    from fastapi.templating import Jinja2Templates
-    from starlette.exceptions import HTTPException as StarletteHTTPException
-
-    _tpl = Jinja2Templates(directory=str(_Path(__file__).resolve().parent.parent / "templates"))
-    _titles = {
-        400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found",
-        405: "Method Not Allowed", 408: "Request Timeout", 429: "Too Many Requests",
-        500: "Internal Server Error", 502: "Bad Gateway", 503: "Service Unavailable", 504: "Gateway Timeout",
-    }
 
     app = FastAPI(
         title="NovaProtocol Assets",
@@ -40,26 +52,15 @@ def create_app() -> FastAPI:
         debug=config.DEBUG,
     )
 
-    @app.exception_handler(StarletteHTTPException)
-    async def _http(request, exc: StarletteHTTPException):
-        code = exc.status_code if exc.status_code in _titles else 500
-        title = _titles.get(code, "Error")
-        msg = str(exc.detail) if code != 404 else "The asset you're looking for doesn't exist."
-        accept = request.headers.get("accept", "")
-        if "application/json" in accept and "text/html" not in accept:
-            return JSONResponse({"error": title, "code": code}, status_code=code)
-        return _tpl.TemplateResponse(request, "error.html", {"code": code, "title": title, "message": msg}, status_code=code)
+    from apps.middleware import RequestIDMiddleware
 
-    @app.exception_handler(Exception)
-    async def _exc(request, exc: Exception):
-        if isinstance(exc, StarletteHTTPException):
-            return await _http(request, exc)
-        return _tpl.TemplateResponse(request, "error.html", {"code": 500, "title": "Internal Server Error", "message": "Something went wrong."}, status_code=500)
+    app.add_middleware(RequestIDMiddleware)
 
+    # optional access log (keep original behaviour via middleware already)
     @app.middleware("http")
-    async def access_log(request, call_next):
+    async def _access_log(request, call_next):
         response = await call_next(request)
-        logger.info(
+        logging.getLogger("access").info(
             '%s %s %s "%s"',
             request.client.host if request.client else "-",
             request.method,
@@ -75,5 +76,16 @@ def create_app() -> FastAPI:
     from apps.routes import router
 
     app.include_router(router)
+
+    # error handlers need templates — use app's Jinja2Templates from routes if available, else create
+    try:
+        from pathlib import Path as _P
+        from fastapi.templating import Jinja2Templates
+        _tpl = Jinja2Templates(directory=str(_P(__file__).resolve().parent.parent / "templates"))
+        from apps.errors import install_error_handlers
+
+        install_error_handlers(app, _tpl)
+    except Exception:
+        pass
 
     return app
