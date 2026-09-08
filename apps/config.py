@@ -1,26 +1,23 @@
 from __future__ import annotations
 
-import os
-from dataclasses import dataclass
+from functools import lru_cache
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-@dataclass(frozen=True)
-class BaseConfig:
-    DEBUG: bool = False
+class Settings(BaseSettings):
+    DEPLOYMENT_TYPE: str = "debug"
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
+
+    @property
+    def DEBUG(self) -> bool:
+        return self.DEPLOYMENT_TYPE.lower() == "debug"
 
 
-@dataclass(frozen=True)
-class DebugConfig(BaseConfig):
-    DEBUG: bool = True
+Config = Settings
 
 
-@dataclass(frozen=True)
-class ProductionConfig(BaseConfig):
-    DEBUG: bool = False
-
-
-def get_config() -> BaseConfig:
-    deployment = os.environ.get("DEPLOYMENT_TYPE", "debug")
-    if deployment == "production":
-        return ProductionConfig()
-    return DebugConfig()
+@lru_cache
+def get_config() -> Settings:
+    return Settings()
