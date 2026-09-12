@@ -8,23 +8,23 @@ Public **FastAPI asset server** that renders the three animated terminal SVGs em
 
 | Service | Container | Internal Port | Caddy Route | Network |
 |---------|-----------|---------------|-------------|---------|
-| **Caddy** | `novaprotocol_caddy` | `:7050` | — | `default`, `gatekeeper_dynamic`, `cloudflared-tunnel` |
+| **Caddy** | `novaprotocol_caddy` | `:7050` | — | `default`, `gatekeeper` |
 | **App (monolith)** | `novaprotocol_main` | `:8000` | `/*` via `novaprotocol_main:8000` | `default` |
 | **Documentation** | `novaprotocol_documentation` | `:8005` | `/documentation/*` via `novaprotocol_documentation:8005` | `default` |
 
 - `GET /health` bypasses everything — tunnel and compose healthchecks.
-- `GET /documentation/*` is **public** (no `forward_auth`) — docs are safe to embed and cache like the SVGs.
+- `GET /documentation/*` is **public** (no `GateKeeper gate`) — docs are safe to embed and cache like the SVGs.
 - All other routes (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) are public by design — no auth gate.
 
 ```mermaid
 graph TB
-    TUN["Cloudflare Tunnel<br/>github.projectnova.download"] --> CADDY["Caddy :7050<br/>novaprotocol_caddy"]
-    CADDY -->|" /health (public) "| APP["novaprotocol_main :8000<br/>FastAPI + granian<br/>apps/ factory"]
-    CADDY -->|" /name.svg, /console.svg, /skills.svg (public) "| APP
-    CADDY -->|" /documentation/* (public) "| DOCS["novaprotocol_documentation :8005<br/>MkDocs + FastAPI + granian"]
-    APP --> SVG["apps/*_svg.py<br/>name / console / skills renderers"]
-    SVG --> LIB["utilities/terminal_svg/<br/>ansi + timeline + render + core"]
-    APP --> TEST["GET /test<br/>live SVG gallery"]
+ TUN["Cloudflare Tunnel<br/>github.projectnova.download"] --> CADDY["Caddy :7050<br/>novaprotocol_caddy"]
+ CADDY -->|" /health (public) "| APP["novaprotocol_main :8000<br/>FastAPI + granian<br/>apps/ factory"]
+ CADDY -->|" /name.svg, /console.svg, /skills.svg (public) "| APP
+ CADDY -->|" /documentation/* (public) "| DOCS["novaprotocol_documentation :8005<br/>MkDocs + FastAPI + granian"]
+ APP --> SVG["apps/*_svg.py<br/>name / console / skills renderers"]
+ SVG --> LIB["utilities/terminal_svg/<br/>ansi + timeline + render + core"]
+ APP --> TEST["GET /test<br/>live SVG gallery"]
 ```
 
 ## Quick Links
@@ -38,7 +38,7 @@ graph TB
 
 ## Relationship to House Reference
 
-This project follows `~/Projects/agent_stuff/reference/` for monolith layout (`apps/` factory, `utilities/` standalone, `data/` static HTML), Docker conventions (`python:3.14-slim`, `granian`, `appuser` uid `10001`, loopback-only publish), Caddy public routing (no `forward_auth`), and per-project MkDocs at `documentation/` (Material theme, `8005`, `handle_path /documentation/*`).
+This project follows `~/Projects/agent_stuff/reference/` for monolith layout (`apps/` factory, `utilities/` standalone, `data/` static HTML), Docker conventions (`python:3.14-slim`, `granian`, `appuser` uid `10001`, loopback-only publish), Caddy public routing (no `GateKeeper gate`), and per-project MkDocs at `documentation/` (Material theme, `8005`, `handle_path /documentation/*`).
 
 ??? note "Intentionally public — no GateKeeper"
-    Unlike Buddy's, Portfolio, SolveSpace, and WBS, NovaProtocol is **not** gated. The SVGs are `<img src="https://github.projectnova.download/name.svg">` embeds in a GitHub profile README. GitHub's image proxy and browsers fetch without cookies — `forward_auth gatekeeper:7000` would `302` to login and the image would break. The Caddyfile therefore has no `forward_auth` block at all, and `compose.yaml` does not join `gatekeeper_default`. Documentation follows the same rule — `/documentation/*` is public — because the project's assets are public.
+ Unlike Buddy's, Portfolio, SolveSpace, and WBS, NovaProtocol is **not** gated. The SVGs are `<img src="https://github.projectnova.download/name.svg">` embeds in a GitHub profile README. GitHub's image proxy and browsers fetch without cookies — `GateKeeper gate` would `302` to login and the image would break. The Caddyfile therefore has no `GateKeeper gate` block at all, and `compose.yaml` does not join `gatekeeper`. Documentation follows the same rule — `/documentation/*` is public — because the project's assets are public.

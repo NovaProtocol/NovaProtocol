@@ -31,31 +31,28 @@ Each badge has its own page:
 
 _NO_CACHE = {"Cache-Control": "no-store, max-age=0"}
 
-
 @router.get("/name.svg")
 async def name_route():
-    return Response(
-        content=name_svg.render_name_svg(), media_type="image/svg+xml", headers=_NO_CACHE
-    )
-
+ return Response(
+ content=name_svg.render_name_svg(), media_type="image/svg+xml", headers=_NO_CACHE
+ )
 
 @router.get("/console.svg")
 async def console_route():
-    return Response(
-        content=console_svg.render_console_svg(), media_type="image/svg+xml", headers=_NO_CACHE
-    )
-
+ return Response(
+ content=console_svg.render_console_svg(), media_type="image/svg+xml", headers=_NO_CACHE
+ )
 
 @router.get("/skills.svg")
 async def skills_route():
-    return Response(
-        content=skills_svg.render_skills_svg(), media_type="image/svg+xml", headers=_NO_CACHE
-    )
+ return Response(
+ content=skills_svg.render_skills_svg(), media_type="image/svg+xml", headers=_NO_CACHE
+ )
 ```
 
 - `Content-Type: image/svg+xml` — GitHub camo and browsers render as images.
 - `Cache-Control: no-store, max-age=0` — prevents stale animation caching (the SVG's internal timing is part of the content).
-- All three routes are **public** — no `forward_auth`, no cookie.
+- All three routes are **public** — no `GateKeeper gate`, no cookie.
 
 ## Live Preview
 
@@ -75,14 +72,14 @@ That page is also public and useful for manual QA before pushing a badge tweak.
 All three badges share the prompt and base typing feel; only `max_line` and `delay_per_char_input` vary:
 
 ```python
-view = TerminalSVG(max_line=8)  # name & console — compact
+view = TerminalSVG(max_line=8) # name & console — compact
 view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
-view.delay_per_char_input = 0.03  # name — 30ms per char
-view.delay_per_char_output = 0.0  # output bursts (1ms per char minimum)
+view.delay_per_char_input = 0.03 # name — 30ms per char
+view.delay_per_char_output = 0.0 # output bursts (1ms per char minimum)
 
-view = TerminalSVG(max_line=20)  # skills — tall
+view = TerminalSVG(max_line=20) # skills — tall
 view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
-view.delay_per_char_input = 0.05  # slightly slower typing for readability
+view.delay_per_char_input = 0.05 # slightly slower typing for readability
 ```
 
 Per-entry overrides (`custom_prefix`, `custom_start_delay`, `custom_end_delay`) drive the PowerShell-style `PS ...>` → `password:` → `nova@…$` transition that opens every badge.

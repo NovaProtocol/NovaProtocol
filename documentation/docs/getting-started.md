@@ -24,7 +24,7 @@ Environment variables are injected by compose interpolation. Full list in `.env.
 | `DEPLOYMENT_TYPE` | yes | `debug` or `production` (controls `FastAPI(debug=…)` and `uvicorn --reload`) |
 
 ```bash
-export DEPLOYMENT_TYPE=debug   # or production
+export DEPLOYMENT_TYPE=debug # or production
 ```
 
 > No `.env` file is used. Compose fails fast with `${VAR:?}` if `DEPLOYMENT_TYPE` is unset. App config reads strictly from `os.environ`.
@@ -36,7 +36,7 @@ export DEPLOYMENT_TYPE=debug   # or production
 ```bash
 python -m venv .venv && .venv/bin/pip install -r requirements.txt -r requirements-dev.txt
 export DEPLOYMENT_TYPE=debug
-.venv/bin/python run.py            # uvicorn :8000, reload in debug
+.venv/bin/python run.py # uvicorn :8000, reload in debug
 ```
 
 - Dev server: `http://127.0.0.1:8000/` and `http://127.0.0.1:8000/health`
@@ -59,7 +59,7 @@ docker compose logs -f app
 |-----|------|
 | `http://localhost:7050/` (via tunnel) | Public app — `GET /health` and the three SVGs are public |
 | `http://localhost:7050/health` | Health bypass (Caddy `handle /health`) |
-| `http://localhost:7050/documentation/` | MkDocs site — **public** (`handle_path /documentation/*` without `forward_auth`) |
+| `http://localhost:7050/documentation/` | MkDocs site — **public** (`handle_path /documentation/*` without a GateKeeper `none`-rule) |
 | `http://app:8000/health` (inside network) | Direct app health (compose healthcheck) |
 | `http://documentation:8005/health` (inside network) | Docs healthcheck |
 
@@ -72,14 +72,14 @@ First build installs `requirements.txt` (FastAPI, granian, svgwrite) and `docume
 ```bash
 pip install -r documentation/requirements.txt
 mkdocs build --config-file documentation/mkdocs.yml
-mkdocs serve --config-file documentation/mkdocs.yml  # http://127.0.0.1:8000
+mkdocs serve --config-file documentation/mkdocs.yml # http://127.0.0.1:8000
 ```
 
 Inside Docker, the docs container serves prebuilt `site/` via FastAPI + granian:
 
 ```bash
 docker compose up -d --build documentation
-curl -s http://127.0.0.1:8005/health  # via sibling container: {"status":"ok"}
+curl -s http://127.0.0.1:8005/health # via sibling container: {"status":"ok"}
 # or through Caddy:
 curl -s http://127.0.0.1:7050/documentation/ | head
 ```

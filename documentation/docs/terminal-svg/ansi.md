@@ -5,34 +5,34 @@ Converts inline ANSI SGR escapes in entry strings into styled `Segment`s that th
 ## Palette
 
 ```python
-BG = "#0D1117"  # terminal background (also in render.py chrome)
-FG = "#c8d2dc"  # default foreground
-GREEN = "#50c878"  # also ANSI 32
+BG = "#0D1117" # terminal background (also in render.py chrome)
+FG = "#c8d2dc" # default foreground
+GREEN = "#50c878" # also ANSI 32
 GREEN_DIM = "#3aa75f"
-GRAY = "#828c9b"  # also ANSI 90
-BLUE = "#6ea0eb"  # also ANSI 34
-RED = "#ff5555"  # also ANSI 31
-YELLOW = "#e6c85a"  # also ANSI 33
-PINK = "#e678be"  # also ANSI 35
+GRAY = "#828c9b" # also ANSI 90
+BLUE = "#6ea0eb" # also ANSI 34
+RED = "#ff5555" # also ANSI 31
+YELLOW = "#e6c85a" # also ANSI 33
+PINK = "#e678be" # also ANSI 35
 FONT = "DejaVu Sans Mono, Menlo, Consolas, monospace"
 
 ANSI_FG = {
-    "30": "#000000",
-    "31": RED,
-    "32": "#50c878",
-    "33": YELLOW,
-    "34": BLUE,
-    "35": PINK,
-    "36": "#8be9fd",
-    "37": FG,
-    "90": GRAY,
-    "91": RED,
-    "92": "#50c878",
-    "93": YELLOW,
-    "94": BLUE,
-    "95": PINK,
-    "96": "#8be9fd",
-    "97": "#ffffff",
+ "30": "#000000",
+ "31": RED,
+ "32": "#50c878",
+ "33": YELLOW,
+ "34": BLUE,
+ "35": PINK,
+ "36": "#8be9fd",
+ "37": FG,
+ "90": GRAY,
+ "91": RED,
+ "92": "#50c878",
+ "93": YELLOW,
+ "94": BLUE,
+ "95": PINK,
+ "96": "#8be9fd",
+ "97": "#ffffff",
 }
 ```
 
@@ -43,10 +43,10 @@ Only foreground SGR codes are supported — background SGR (`40`-`47`, `100`-`10
 ```python
 @dataclass
 class Style:
-    fg: str = FG
-    bold: bool = False
-    italic: bool = False
-    underline: bool = False
+ fg: str = FG
+ bold: bool = False
+ italic: bool = False
+ underline: bool = False
 ```
 
 Bold/italic/underline map to `font-weight`, `font-style`, `text-decoration` in the rendered `<tspan>`.
@@ -56,9 +56,9 @@ Bold/italic/underline map to `font-weight`, `font-style`, `text-decoration` in t
 ```python
 @dataclass
 class Segment:
-    text: str
-    style: Style
-    delay: float = 0.0  # pause (seconds) before this segment's first char
+ text: str
+ style: Style
+ delay: float = 0.0 # pause (seconds) before this segment's first char
 ```
 
 `delay` is the custom pause escape (`\x1b[<ms>p`) accumulated before the segment — the timeline adds it to `t` before emitting the segment's chars. Example: `"loading\x1b[400p done"` → two segments, second with `delay=0.4`.
@@ -66,8 +66,8 @@ class Segment:
 ## Regexes
 
 ```python
-_SGR = re.compile(r"\x1b\[([0-9;]*)m")  # e.g. \x1b[32m, \x1b[1;4m, \x1b[0m
-_DELAY = re.compile(r"\x1b\[(\d+)p")  # e.g. \x1b[500p = 500ms pause
+_SGR = re.compile(r"\x1b\[([0-9;]*)m") # e.g. \x1b[32m, \x1b[1;4m, \x1b[0m
+_DELAY = re.compile(r"\x1b\[(\d+)p") # e.g. \x1b[500p = 500ms pause
 ```
 
 Tokens from both regexes are collected, sort-merged by start offset, then scanned left-to-right. Text between tokens becomes `Segment`s with the current `Style`; `delay` tokens accumulate into `delay_acc` and are attached to the *next* segment's `delay`.
@@ -127,11 +127,11 @@ RED = "\x1b[31m"
 RESET = "\x1b[0m"
 
 COMMANDS = [
-    {"input": "whoami", "output": ["nova"]},
-    {
-        "input": "docker compose up -d",
-        "output": [f"{GREEN}Container novaprotocol_main   Started{RESET}"],
-    },
+ {"input": "whoami", "output": ["nova"]},
+ {
+ "input": "docker compose up -d",
+ "output": [f"{GREEN}Container novaprotocol_main Started{RESET}"],
+ },
 ]
 ```
 
@@ -143,13 +143,12 @@ COMMANDS = [
 
 ```python
 def test_parse_ansi_color():
-    segs = parse_ansi("\x1b[32mhello\x1b[0m")
-    assert segs[0].style.fg == "#50c878"
-
+ segs = parse_ansi("\x1b[32mhello\x1b[0m")
+ assert segs[0].style.fg == "#50c878"
 
 def test_parse_ansi_delay_code():
-    segs = parse_ansi("ab\x1b[500pcd")
-    assert segs[1].delay == 0.5
+ segs = parse_ansi("ab\x1b[500pcd")
+ assert segs[1].delay == 0.5
 ```
 
 ## Gotchas

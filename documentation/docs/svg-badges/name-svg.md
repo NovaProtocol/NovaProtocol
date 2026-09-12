@@ -12,49 +12,48 @@ A compact 8-line badge — a terminal that SSHes in and runs `./introduce_yourse
 # apps/name_svg.py
 
 NOVA_ART = [
-    "███╗   ██╗   ██████╗   ██╗   ██╗   █████╗ ",
-    "████╗  ██║  ██╔═══██╗  ██║   ██║  ██╔══██╗",
-    "██╔██╗ ██║  ██║   ██║  ██║   ██║  ███████║",
-    "██║╚██╗██║  ██║   ██║  ╚██╗ ██╔╝  ██╔══██║",
-    "██║ ╚████║  ╚██████╔╝   ╚████╔╝   ██║  ██║",
-    "╚═╝  ╚═══╝   ╚═════╝     ╚═══╝    ╚═╝  ╚═╝",
+ "███╗ ██╗ ██████╗ ██╗ ██╗ █████╗ ",
+ "████╗ ██║ ██╔═══██╗ ██║ ██║ ██╔══██╗",
+ "██╔██╗ ██║ ██║ ██║ ██║ ██║ ███████║",
+ "██║╚██╗██║ ██║ ██║ ╚██╗ ██╔╝ ██╔══██║",
+ "██║ ╚████║ ╚██████╔╝ ╚████╔╝ ██║ ██║",
+ "╚═╝ ╚═══╝ ╚═════╝ ╚═══╝ ╚═╝ ╚═╝",
 ]
 
 COMMANDS: list[dict] = [
-    {
-        "input": "ssh nova@ProjectNova.remote",
-        "output": [],
-        "custom_prefix": "PS C:\\Users\\khyles> ",
-        "custom_start_delay": 1,
-        "custom_end_delay": 1.5,
-    },
-    {
-        "input": "************",
-        "output": [],
-        "custom_prefix": "nova@ProjectNova.local's password: ",
-        "custom_start_delay": 1,
-        "custom_end_delay": 2.5,
-    },
-    {
-        "input": "./introduce_yourself.sh",
-        "output": [
-            *[f"{GREEN}{line}{RESET}" for line in NOVA_ART],
-            "> Khyles Gibrian Ramos",
-            f"{BLUE}> https://github.com/NovaProtocol{RESET}",
-        ],
-        "custom_start_delay": 0.5,
-    },
+ {
+ "input": "ssh nova@ProjectNova.remote",
+ "output": [],
+ "custom_prefix": "PS C:\\Users\\khyles> ",
+ "custom_start_delay": 1,
+ "custom_end_delay": 1.5,
+ },
+ {
+ "input": "************",
+ "output": [],
+ "custom_prefix": "nova@ProjectNova.local's password: ",
+ "custom_start_delay": 1,
+ "custom_end_delay": 2.5,
+ },
+ {
+ "input": "./introduce_yourself.sh",
+ "output": [
+ *[f"{GREEN}{line}{RESET}" for line in NOVA_ART],
+ "> Khyles Gibrian Ramos",
+ f"{BLUE}> https://github.com/NovaProtocol{RESET}",
+ ],
+ "custom_start_delay": 0.5,
+ },
 ]
 
-
 def render_name_svg() -> str:
-    view = TerminalSVG(max_line=8)
-    view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
-    view.delay_per_char_input = 0.03
-    view.delay_per_char_output = 0.0
-    for entry in COMMANDS:
-        view.add_line(entry)
-    return view.render()
+ view = TerminalSVG(max_line=8)
+ view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
+ view.delay_per_char_input = 0.03
+ view.delay_per_char_output = 0.0
+ for entry in COMMANDS:
+ view.add_line(entry)
+ return view.render()
 ```
 
 - `max_line=8` — compact badge height `60 + 8*20 + 6 = 226` (viewBox `880×226`).
@@ -86,20 +85,20 @@ Or `curl -s http://127.0.0.1:8000/name.svg | head -c 200`.
 
 ```python
 def test_name_svg_renders():
-    svg = render_name_svg()
-    assert svg.startswith("<svg")
-    assert "Khyles" in svg
+ svg = render_name_svg()
+ assert svg.startswith("<svg")
+ assert "Khyles" in svg
 ```
 
 `tests/test_routes.py::test_name_svg_route` hits the HTTP route:
 
 ```python
 def test_name_svg_route():
-    with TestClient(create_app()) as client:
-        r = client.get("/name.svg")
-        assert r.headers["content-type"].startswith("image/svg+xml")
-        assert r.headers["cache-control"] == "no-store, max-age=0"
-        assert b"Khyles" in r.content
+ with TestClient(create_app()) as client:
+ r = client.get("/name.svg")
+ assert r.headers["content-type"].startswith("image/svg+xml")
+ assert r.headers["cache-control"] == "no-store, max-age=0"
+ assert b"Khyles" in r.content
 ```
 
 When editing `NOVA_ART` or output lines, keep at least one stable assertion string (e.g. `"Khyles"` or a line fragment) so the route test still pins the contract.

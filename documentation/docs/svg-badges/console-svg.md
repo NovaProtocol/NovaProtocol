@@ -12,38 +12,38 @@ An 8-line “bring-up” badge — a fresh Linux boot, then the pre-prod `docker
 # apps/console_svg.py — COMMANDS: list[dict] (abridged)
 
 COMMANDS = [
-    # SSH in (same PowerShell → password open as name.svg/cl skills)
-    {"input": "ssh nova@ProjectNova.remote",  "custom_prefix": "PS C:\\Users\\khyles> ", ...},
-    {"input": "************",                  "custom_prefix": "nova@ProjectNova.local's password: ", ...},
+ # SSH in (same PowerShell → password open as name.svg/cl skills)
+ {"input": "ssh nova@ProjectNova.remote", "custom_prefix": "PS C:\\Users\\khyles> ", ...},
+ {"input": "************", "custom_prefix": "nova@ProjectNova.local's password: ", ...},
 
-    # Host probes
-    {"input": "whoami",                        "output": ["nova"]},
-    {"input": "hostname",                      "output": ["prod-01"]},
-    {"input": "uptime",                        "output": [" 10:24:01 up 0 min,  1 user,  load average: 0.85, 0.60, 0.25"]},
-    {"input": "uname -a",                      "output": ["Linux prod-01 6.8.0-40-generic #40-Ubuntu SMP x86_64 GNU/Linux"]},
-    {"input": "free -h",                       "output": [f"{BLUE}               total ...{RESET}", ...]},
-    {"input": "df -h",                         "output": [f"{BLUE}Filesystem ...{RESET}", ...]},
-    {"input": "ss -tlnp",                      "output": [f"{BLUE}State ...{RESET}", ...]},
-    {"input": "systemctl --failed",            "output": [f"{GREEN}0 loaded units listed. Pass.{RESET}"]},
+ # Host probes
+ {"input": "whoami", "output": ["nova"]},
+ {"input": "hostname", "output": ["prod-01"]},
+ {"input": "uptime", "output": [" 10:24:01 up 0 min, 1 user, load average: 0.85, 0.60, 0.25"]},
+ {"input": "uname -a", "output": ["Linux prod-01 6.8.0-40-generic #40-Ubuntu SMP x86_64 GNU/Linux"]},
+ {"input": "free -h", "output": [f"{BLUE} total ...{RESET}", ...]},
+ {"input": "df -h", "output": [f"{BLUE}Filesystem ...{RESET}", ...]},
+ {"input": "ss -tlnp", "output": [f"{BLUE}State ...{RESET}", ...]},
+ {"input": "systemctl --failed", "output": [f"{GREEN}0 loaded units listed. Pass.{RESET}"]},
 
-    # Compose dance
-    {"input": "docker compose ps",             "output": [f"{BLUE}NAME ...{RESET}", "novaprotocol_main     (created) ..."]},
-    {"input": "docker compose uo -d",          "output": [f"{RED}bash: uo: command not found{RESET}", "Usage:  docker compose ..."]},
-    {"input": "docker compose up -d",          "output": [f"{GREEN}Container novaprotocol_main   Started{RESET}", ...]},
-    {"input": "docker compose ps",             "output": [f"{BLUE}NAME ...{RESET}", "novaprotocol_main     novaprotocol/app:latest ..."]},
+ # Compose dance
+ {"input": "docker compose ps", "output": [f"{BLUE}NAME ...{RESET}", "novaprotocol_main (created) ..."]},
+ {"input": "docker compose uo -d", "output": [f"{RED}bash: uo: command not found{RESET}", "Usage: docker compose ..."]},
+ {"input": "docker compose up -d", "output": [f"{GREEN}Container novaprotocol_main Started{RESET}", ...]},
+ {"input": "docker compose ps", "output": [f"{BLUE}NAME ...{RESET}", "novaprotocol_main novaprotocol/app:latest ..."]},
 
-    # Logs + health
-    {"input": "docker logs novaprotocol_main --tail 30",
-     "output": [f"{GRAY}[INFO] Starting granian{RESET}", ...]},
-    {"input": "curl -s localhost:8000/health", "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"]},
+ # Logs + health
+ {"input": "docker logs novaprotocol_main --tail 30",
+ "output": [f"{GRAY}[INFO] Starting granian{RESET}", ...]},
+ {"input": "curl -s localhost:8000/health", "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"]},
 
-    # Tunnel + public
-    {"input": "cloudflared tunnel list",       "output": [f"{BLUE}ID ...{RESET}", "2a3b4c5d-... novaprotocol ..."]},
-    {"input": "curl -s https://github.projectnova.download/health",
-     "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"]},
+ # Tunnel + public
+ {"input": "cloudflared tunnel list", "output": [f"{BLUE}ID ...{RESET}", "2a3b4c5d-... novaprotocol ..."]},
+ {"input": "curl -s https://github.projectnova.download/health",
+ "output": [f"{GREEN}{{\"status\":\"ok\"}}{RESET}"]},
 
-    {"input": "exit",                          "output": ["logout", "Connection to ProjectNova.remote closed."]},
-    {"input": "", "output": [],                "custom_prefix": "PS C:\\Users\\khyles> "},  # trailing prompt
+ {"input": "exit", "output": ["logout", "Connection to ProjectNova.remote closed."]},
+ {"input": "", "output": [], "custom_prefix": "PS C:\\Users\\khyles> "}, # trailing prompt
 ]
 ```
 
@@ -57,16 +57,16 @@ Key narrative beats:
 
 ```python
 def render_console_svg(max_line: int = 8) -> str:
-    view = TerminalSVG(max_line=max_line)
-    view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
-    view.delay_per_char_input = 0.03
-    view.delay_per_char_output = 0.0
-    view.delay_per_line_input = 1
-    view.delay_per_line_output = 0.05
-    view.delay_after_entry = 0.05
-    for entry in COMMANDS:
-        view.add_line(entry)
-    return view.render()
+ view = TerminalSVG(max_line=max_line)
+ view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
+ view.delay_per_char_input = 0.03
+ view.delay_per_char_output = 0.0
+ view.delay_per_line_input = 1
+ view.delay_per_line_output = 0.05
+ view.delay_after_entry = 0.05
+ for entry in COMMANDS:
+ view.add_line(entry)
+ return view.render()
 ```
 
 - `max_line=8` — same compact height as name badge (`226px`), so all three badges align in the profile grid.
@@ -84,19 +84,19 @@ def render_console_svg(max_line: int = 8) -> str:
 
 ```python
 def test_console_svg_has_chrome():
-    out = render_console_svg()
-    assert "nova@ProjectNova" in out
-    assert "#0D1117" in out
+ out = render_console_svg()
+ assert "nova@ProjectNova" in out
+ assert "#0D1117" in out
 ```
 
 `tests/test_routes.py::test_console_svg_route`:
 
 ```python
 def test_console_svg_route():
-    with TestClient(create_app()) as client:
-        r = client.get("/console.svg")
-        assert r.headers["content-type"].startswith("image/svg+xml")
-        assert b"nova@ProjectNova" in r.content
+ with TestClient(create_app()) as client:
+ r = client.get("/console.svg")
+ assert r.headers["content-type"].startswith("image/svg+xml")
+ assert b"nova@ProjectNova" in r.content
 ```
 
 When editing output strings, keep ANSI coloring consistent — `BLUE` headers, `GREEN` success, `RED` error, `GRAY` logs — so the profile render stays themed.

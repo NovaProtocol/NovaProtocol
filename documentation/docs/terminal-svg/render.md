@@ -9,7 +9,7 @@ PAD_X = 26
 BODY_TOP = 60
 FONT_SIZE = 14
 LINE_H = 20
-CHAR_W = 8.4  # not used for layout (monospace is implicit), kept for reference
+CHAR_W = 8.4 # not used for layout (monospace is implicit), kept for reference
 ```
 
 - `BODY_TOP` is the title bar height — content starts at that `y`.
@@ -23,10 +23,10 @@ CHAR_W = 8.4  # not used for layout (monospace is implicit), kept for reference
 
 ```python
 def render_svg(
-    timeline: Timeline,
-    max_line: int,
-    width: int,
-    loop: bool = False,
+ timeline: Timeline,
+ max_line: int,
+ width: int,
+ loop: bool = False,
 ) -> str:
 ```
 
@@ -49,20 +49,20 @@ Badge modules (`name_svg`, `console_svg`, `skills_svg`) keep `loop=False` — th
 ### Chrome
 
 ```python
-dwg.add(dwg.rect(insert=(0, 0), size=(width, height), fill=BG))  # #0D1117 outer
+dwg.add(dwg.rect(insert=(0, 0), size=(width, height), fill=BG)) # #0D1117 outer
 dwg.add(
-    dwg.rect(
-        insert=(6, 6),
-        size=(width - 12, height - 12),
-        fill="#0b0f14",
-        stroke="#30353e",
-        stroke_width=1,
-        rx=4,
-    )
-)  # inner
-dwg.add(dwg.rect(insert=(6, 6), size=(width - 12, 26), fill="#161b22", rx=4))  # title bar
+ dwg.rect(
+ insert=(6, 6),
+ size=(width - 12, height - 12),
+ fill="#0b0f14",
+ stroke="#30353e",
+ stroke_width=1,
+ rx=4,
+ )
+) # inner
+dwg.add(dwg.rect(insert=(6, 6), size=(width - 12, 26), fill="#161b22", rx=4)) # title bar
 title = dwg.text(
-    "nova@ProjectNova: ~ — bash", insert=(PAD_X, 24), font_family=FONT, font_size=12, fill="#828c9b"
+ "nova@ProjectNova: ~ — bash", insert=(PAD_X, 24), font_family=FONT, font_size=12, fill="#828c9b"
 )
 ```
 
@@ -73,8 +73,8 @@ Colors mirror VS Code / GitHub Dark. The inner fill `#0b0f14` is slightly darker
 ```python
 clip = dwg.clipPath(id="term_viewport")
 clip.add(
-    dwg.rect(insert=(6, BODY_TOP - FONT_SIZE), size=(width - 12, content_h))
-)  # content_h = max_line * LINE_H
+ dwg.rect(insert=(6, BODY_TOP - FONT_SIZE), size=(width - 12, content_h))
+) # content_h = max_line * LINE_H
 dwg.add(clip)
 viewport = dwg.g(clip_path="url(#term_viewport)")
 ```
@@ -89,38 +89,38 @@ For each `Row i`:
 - A `<text x=PAD_X y=init_y font-family=FONT font-size=14 xml:space="preserve">` group — `preserve` keeps column-aligned spaces (important for `df -h`, `ss -tlnp` tables).
 - Inside:
 
-  - If `kind == "command"`: one `<tspan>` per `Char` (per-character typing).
-  - If `kind == "output"`: coalesce consecutive `Char`s with the same `Style` into one `<tspan>` (keeps multi-color lines like `ERROR` red + path gray in a single `tspan` per segment, opacity-animated as a unit at `row.begin`).
+ - If `kind == "command"`: one `<tspan>` per `Char` (per-character typing).
+ - If `kind == "output"`: coalesce consecutive `Char`s with the same `Style` into one `<tspan>` (keeps multi-color lines like `ERROR` red + path gray in a single `tspan` per segment, opacity-animated as a unit at `row.begin`).
 
-  Each `<tspan>` starts `opacity="0"` and gets one `<animate>`:
+ Each `<tspan>` starts `opacity="0"` and gets one `<animate>`:
 
-  - Non-loop: `_flash(span, begin)` → `opacity 0;1 begin="…s" dur="0.01s" fill="freeze"`.
-  - Loop: `_loop_animate(span, "opacity", begin, total)` → `keyTimes`-based loop.
+ - Non-loop: `_flash(span, begin)` → `opacity 0;1 begin="…s" dur="0.01s" fill="freeze"`.
+ - Loop: `_loop_animate(span, "opacity", begin, total)` → `keyTimes`-based loop.
 
 - Then chaining for scroll:
 
-  ```python
-  scroll_times = [row.begin for row in rows[max_line:]]
-  ```
+ ```python
+ scroll_times = [row.begin for row in rows[max_line:]]
+ ```
 
-  At each `st`, every earlier row's `y` animates `prev;prev-LINE_H` with `begin="st s"`. Overflow rows themselves also shift — they start below the viewport and scroll up into view at their `begin`.
+ At each `st`, every earlier row's `y` animates `prev;prev-LINE_H` with `begin="st s"`. Overflow rows themselves also shift — they start below the viewport and scroll up into view at their `begin`.
 
-  - Non-loop: `_y_chain(text_el, init_y, scroll_times)`.
-  - Loop: `_loop_y_chain(text_el, init_y, scroll_times, total)` — `keyTimes` loop with holds and `LINE_H` jumps.
+ - Non-loop: `_y_chain(text_el, init_y, scroll_times)`.
+ - Loop: `_loop_y_chain(text_el, init_y, scroll_times, total)` — `keyTimes` loop with holds and `LINE_H` jumps.
 
 ## Flash Helper
 
 ```python
 def _flash(el, appear_t: float):
-    el.add(
-        animate.Animate(
-            attributeName="opacity",
-            values="0;1",
-            begin=f"{appear_t:.3f}s",
-            dur="0.01s",
-            fill="freeze",
-        )
-    )
+ el.add(
+ animate.Animate(
+ attributeName="opacity",
+ values="0;1",
+ begin=f"{appear_t:.3f}s",
+ dur="0.01s",
+ fill="freeze",
+ )
+ )
 ```
 
 `dur="0.01s"` is the smallest perceptible — effectively "instant at `appear_t`". `freeze` holds the final value forever (no loop).
@@ -129,17 +129,17 @@ def _flash(el, appear_t: float):
 
 ```python
 def _loop_animate(el, attr: str, appear_t: float, total: float, values=("0", "1")):
-    k = appear_t / total
-    el.add(
-        animate.Animate(
-            attributeName=attr,
-            values=";".join(values),
-            keyTimes=f"0;{k:.5f};{k:.5f};1",
-            dur=f"{total:.3f}s",
-            begin="0s",
-            repeatCount="indefinite",
-        )
-    )
+ k = appear_t / total
+ el.add(
+ animate.Animate(
+ attributeName=attr,
+ values=";".join(values),
+ keyTimes=f"0;{k:.5f};{k:.5f};1",
+ dur=f"{total:.3f}s",
+ begin="0s",
+ repeatCount="indefinite",
+ )
+ )
 ```
 
 `keyTimes` holds at `"0"` until `k`, jumps to `"1"` at that instant, holds to `1`. Clamped to `[0,1]`.
@@ -168,18 +168,17 @@ def _loop_animate(el, attr: str, appear_t: float, total: float, values=("0", "1"
 
 ```python
 def test_terminal_svg_renders_last_max_lines():
-    v = TerminalSVG(max_line=3)
-    for i in range(5):
-        v.add_line({"input": f"cmd{i}", "output": [f"out{i}"]})
-    svg = v.render()
-    assert svg.startswith("<svg")
-    assert 'attributeName="opacity"' in svg
-
+ v = TerminalSVG(max_line=3)
+ for i in range(5):
+ v.add_line({"input": f"cmd{i}", "output": [f"out{i}"]})
+ svg = v.render()
+ assert svg.startswith("<svg")
+ assert 'attributeName="opacity"' in svg
 
 def test_terminal_svg_height_scales():
-    v = TerminalSVG(max_line=20)
-    v.add_line({"input": "x", "output": []})
-    assert "466" in svg  # BODY_TOP(60)+20*20+6
+ v = TerminalSVG(max_line=20)
+ v.add_line({"input": "x", "output": []})
+ assert "466" in svg # BODY_TOP(60)+20*20+6
 ```
 
 Set `loop=True` in a test and assert `repeatCount="indefinite"` appears.

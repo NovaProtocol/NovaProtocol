@@ -1,13 +1,7 @@
 :7050 {
-    handle /health {
-        reverse_proxy novaprotocol_main:8000
-    }
-
-    handle_path /documentation/* {
-        reverse_proxy novaprotocol_documentation:8005
-    }
-
-    handle {
-        reverse_proxy novaprotocol_main:8000
-    }
-}
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options SAMEORIGIN
+	}

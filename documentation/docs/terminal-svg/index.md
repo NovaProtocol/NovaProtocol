@@ -9,7 +9,7 @@
 - Emits a fixed-size SVG with SMIL `<animate>` tags that type the prompt, type the command, flash each output line, and scroll when `max_line` is exceeded — mimicking a real console window.
 
 ```
-Entry dicts  →  TerminalSVG  →  build_timeline()  →  render_svg()  →  SVG string
+Entry dicts → TerminalSVG → build_timeline() → render_svg() → SVG string
 ```
 
 No JavaScript, no external assets — everything that animates is an `<animate attributeName="opacity">` or `<animate attributeName="y">` inside a `<tspan>`.
@@ -18,12 +18,12 @@ No JavaScript, no external assets — everything that animates is an `<animate a
 
 ```
 utilities/terminal_svg/
-├── __init__.py    # Public surface — re-exports TerminalSVG, Style, parse_ansi, palette
-├── __main__.py    # Demo: build a tiny session, write temp SVG, open in browser
-├── ansi.py        # SGR parsing, palette, Style, Segment, parse_ansi()
-├── timeline.py    # build_timeline(), Char, Row, Timeline
-├── render.py      # render_svg(), layout constants, chrome, clipping
-└── core.py        # TerminalSVG class — the facade you actually use
+├── __init__.py # Public surface — re-exports TerminalSVG, Style, parse_ansi, palette
+├── __main__.py # Demo: build a tiny session, write temp SVG, open in browser
+├── ansi.py # SGR parsing, palette, Style, Segment, parse_ansi()
+├── timeline.py # build_timeline(), Char, Row, Timeline
+├── render.py # render_svg(), layout constants, chrome, clipping
+└── core.py # TerminalSVG class — the facade you actually use
 ```
 
 - [`ANSI Parsing`](ansi.md) — how `\x1b[32m`, `\x1b[1;4m`, `\x1b[0m`, and the custom `\x1b[<ms>p` pause are split into `Segment`s.
@@ -38,24 +38,24 @@ from utilities.terminal_svg import TerminalSVG
 
 view = TerminalSVG(max_line=10)
 view.command_prefix = "nova@ProjectNova:~$ "
-view.delay_per_char_input = 0.08  # typing feel for what you type
-view.delay_per_char_output = 0.0  # output appears instantly
-view.delay_per_line_input = 1.0  # prompt shows, then a beat before typing
-view.delay_per_line_output = 0.05  # pause before each output line
+view.delay_per_char_input = 0.08 # typing feel for what you type
+view.delay_per_char_output = 0.0 # output appears instantly
+view.delay_per_line_input = 1.0 # prompt shows, then a beat before typing
+view.delay_per_line_output = 0.05 # pause before each output line
 
 view.add_line({"input": "ls", "output": ["file.txt"]})
 view.add_line(
-    {
-        "input": "cat file.txt",
-        "output": ["hello world"],
-        "custom_prefix": "root@box:~# ",
-        "custom_start_delay": 0.5,
-        "custom_end_delay": 0.2,
-    }
+ {
+ "input": "cat file.txt",
+ "output": ["hello world"],
+ "custom_prefix": "root@box:~# ",
+ "custom_start_delay": 0.5,
+ "custom_end_delay": 0.2,
+ }
 )
 
-svg = view.render()  # SVG string — write to file or return as Response
-svg = view.render(width=900)  # override width if needed
+svg = view.render() # SVG string — write to file or return as Response
+svg = view.render(width=900) # override width if needed
 ```
 
 Serve it as FastAPI does:
@@ -63,21 +63,20 @@ Serve it as FastAPI does:
 ```python
 from fastapi.responses import Response
 
-
 @app.get("/demo.svg")
 async def demo():
-    return Response(
-        content=view.render(),
-        media_type="image/svg+xml",
-        headers={"Cache-Control": "no-store, max-age=0"},
-    )
+ return Response(
+ content=view.render(),
+ media_type="image/svg+xml",
+ headers={"Cache-Control": "no-store, max-age=0"},
+ )
 ```
 
 Standalone demo:
 
 ```bash
-python -m utilities.terminal_svg          # writes /tmp/*.svg and opens it
-python -m utilities.terminal_svg --help   # (no args — it runs the embedded demo)
+python -m utilities.terminal_svg # writes /tmp/*.svg and opens it
+python -m utilities.terminal_svg --help # (no args — it runs the embedded demo)
 ```
 
 ## Design Choices
@@ -96,12 +95,12 @@ python -m utilities.terminal_svg --help   # (no args — it runs the embedded de
 Each badge module builds a `COMMANDS: list[dict]` session script and calls:
 
 ```python
-view = TerminalSVG(max_line=8)  # name: 8, console: 8, skills: 20
+view = TerminalSVG(max_line=8) # name: 8, console: 8, skills: 20
 view.command_prefix = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
 view.delay_per_char_input = 0.03
 view.delay_per_char_output = 0.0
 for entry in COMMANDS:
-    view.add_line(entry)
+ view.add_line(entry)
 return view.render()
 ```
 
