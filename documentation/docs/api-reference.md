@@ -42,8 +42,8 @@ Health probe for compose and tunnel checks.
 
 ```bash
 curl -s http://127.0.0.1:8000/health
-curl -s http://127.0.0.1:7050/health       # via Caddy
-curl -s https://github.projectnova.download/health  # prod via tunnel
+curl -s http://127.0.0.1:7050/health # via Caddy
+curl -s https://github.projectnova.download/health # prod via tunnel
 ```
 
 ---
@@ -156,8 +156,8 @@ No custom error pages — the only unknown-route test asserts that an old badge 
 
 ```python
 def test_old_typing_route_gone():
-    with TestClient(create_app()) as client:
-        assert client.get("/typing.svg").status_code == 404
+ with TestClient(create_app()) as client:
+ assert client.get("/typing.svg").status_code == 404
 ```
 
 ## OpenAPI
@@ -174,7 +174,7 @@ The app's `APIRouter` does **not** include `/documentation/*` — that prefix is
 
 ```python
 def test_health_ok(): ...
-def test_name_svg_route(): ...  # now 301 → /public/name.svg
+def test_name_svg_route(): ... # now 301 → /public/name.svg
 def test_console_svg_route(): ...
 def test_skills_svg_route(): ...
 def test_old_typing_route_gone(): ...

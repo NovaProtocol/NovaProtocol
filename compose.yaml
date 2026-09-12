@@ -43,13 +43,9 @@ services:
       - "127.0.0.1:7050:7050"
     networks:
       - default
-      - gatekeeper_dynamic
-      - cloudflared-tunnel
+      - gatekeeper
 networks:
   default:
-  cloudflared-tunnel:
+  gatekeeper:
     external: true
-    name: cloudflared-tunnel_default
-  gatekeeper_dynamic:
-    external: true
-    name: gatekeeper_dynamic
+    name: gatekeeper

@@ -7,22 +7,20 @@ Turns a session script (`list[dict]` entries) into a `Timeline` of per-character
 ```python
 @dataclass
 class Char:
-    text: str
-    style: Style
-    begin: float  # seconds into the animation when this char appears
-
+ text: str
+ style: Style
+ begin: float # seconds into the animation when this char appears
 
 @dataclass
 class Row:
-    chars: list[Char]
-    begin: float  # when this row starts appearing
-    kind: str = "output"  # "command" | "output"
-
+ chars: list[Char]
+ begin: float # when this row starts appearing
+ kind: str = "output" # "command" | "output"
 
 @dataclass
 class Timeline:
-    rows: list[Row] = field(default_factory=list)
-    total: float = 0.0  # full duration + 1s settle
+ rows: list[Row] = field(default_factory=list)
+ total: float = 0.0 # full duration + 1s settle
 ```
 
 - `Char.begin` is the `opacity` animation `begin` for that `<tspan>` char.
@@ -33,13 +31,13 @@ class Timeline:
 
 ```python
 def build_timeline(
-    entries: list[dict],
-    command_prefix: str,
-    delay_per_char_input: float,
-    delay_per_char_output: float,
-    delay_per_line_input: float,
-    delay_per_line_output: float,
-    delay_after_entry: float,
+ entries: list[dict],
+ command_prefix: str,
+ delay_per_char_input: float,
+ delay_per_char_output: float,
+ delay_per_line_input: float,
+ delay_per_line_output: float,
+ delay_after_entry: float,
 ) -> Timeline:
 ```
 
@@ -49,12 +47,12 @@ Called by `TerminalSVG.render()` with the view's timing fields plus each entry's
 
 ```python
 {
-    "input": "ssh nova@ProjectNova.remote",  # str — what was typed (typed char-by-char)
-    "output": ["nova", "prod-01"],  # list[str] — lines printed after
-    "delay": 0.4,  # float — extra wait after entry (alt name)
-    "custom_prefix": "PS C:\\Users\\khyles> ",  # override view.command_prefix for this entry
-    "custom_start_delay": 1.0,  # override delay_per_line_input for this entry
-    "custom_end_delay": 1.5,  # override delay_after_entry for this entry
+ "input": "ssh nova@ProjectNova.remote", # str — what was typed (typed char-by-char)
+ "output": ["nova", "prod-01"], # list[str] — lines printed after
+ "delay": 0.4, # float — extra wait after entry (alt name)
+ "custom_prefix": "PS C:\\Users\\khyles> ", # override view.command_prefix for this entry
+ "custom_start_delay": 1.0, # override delay_per_line_input for this entry
+ "custom_end_delay": 1.5, # override delay_after_entry for this entry
 }
 ```
 
@@ -68,42 +66,42 @@ Called by `TerminalSVG.render()` with the view's timing fields plus each entry's
 ```
 t = 0.0
 for entry in entries:
-    prefix = entry.custom_prefix or command_prefix
-    start_delay = entry.custom_start_delay or delay_per_line_input
-    end_delay   = entry.custom_end_delay   or delay_after_entry
+ prefix = entry.custom_prefix or command_prefix
+ start_delay = entry.custom_start_delay or delay_per_line_input
+ end_delay = entry.custom_end_delay or delay_after_entry
 
-    # command row
-    row_begin = t
-    for seg in parse_ansi(prefix):
-        t += seg.delay
-        for ch in seg.text:
-            chars.append(Char(ch, seg.style, t))
-            t += 0.001                # prefix appears ~instantly (1ms per char)
+ # command row
+ row_begin = t
+ for seg in parse_ansi(prefix):
+ t += seg.delay
+ for ch in seg.text:
+ chars.append(Char(ch, seg.style, t))
+ t += 0.001 # prefix appears ~instantly (1ms per char)
 
-    t += start_delay                  # prompt visible, "thinking" before typing
+ t += start_delay # prompt visible, "thinking" before typing
 
-    for seg in parse_ansi(entry.input):
-        t += seg.delay
-        white = Style(fg=FG)
-        for ch in seg.text:
-            chars.append(Char(ch, white, t))
-            t += delay_per_char_input # typing feel for input
+ for seg in parse_ansi(entry.input):
+ t += seg.delay
+ white = Style(fg=FG)
+ for ch in seg.text:
+ chars.append(Char(ch, white, t))
+ t += delay_per_char_input # typing feel for input
 
-    rows.append(Row(chars, row_begin, "command"))
+ rows.append(Row(chars, row_begin, "command"))
 
-    # output rows
-    step = delay_per_char_output or 0.001
-    for out_line in entry.output:
-        t += delay_per_line_output
-        orow_begin = t
-        for seg in parse_ansi(out_line):
-            t += seg.delay
-            for ch in seg.text:
-                ochars.append(Char(ch, seg.style, t))
-                t += step             # output types (or bursts if step tiny)
-        rows.append(Row(ochars, orow_begin, "output"))
+ # output rows
+ step = delay_per_char_output or 0.001
+ for out_line in entry.output:
+ t += delay_per_line_output
+ orow_begin = t
+ for seg in parse_ansi(out_line):
+ t += seg.delay
+ for ch in seg.text:
+ ochars.append(Char(ch, seg.style, t))
+ t += step # output types (or bursts if step tiny)
+ rows.append(Row(ochars, orow_begin, "output"))
 
-    t += end_delay + entry.delay      # wait before next entry
+ t += end_delay + entry.delay # wait before next entry
 
 total = t + 1.0
 ```
@@ -131,10 +129,10 @@ v.delay_per_char_input = 0.05
 v.delay_per_line_input = 0.5
 v.add_line({"input": "ls", "output": ["file.txt"]})
 
-tl = v.render_timeline()  # if exposed, or inspect Timeline.rows directly
+tl = v.render_timeline() # if exposed, or inspect Timeline.rows directly
 # tl.rows[0] -> kind="command", chars for "prompt:$ l","s", begin=0.0
-# tl.rows[1] -> kind="output",  chars for "file.txt",          begin~0.5+2*0.05
-# tl.total   -> last t + 1.0
+# tl.rows[1] -> kind="output", chars for "file.txt", begin~0.5+2*0.05
+# tl.total -> last t + 1.0
 ```
 
 More realistic (badge-style):
@@ -144,16 +142,16 @@ view = TerminalSVG(max_line=8)
 view.command_prefix = "\x1b[32mnova@ProjectNova:\x1b[34m~\x1b[0m$ "
 view.delay_per_char_input = 0.03
 view.add_line(
-    {
-        "input": "ssh nova@ProjectNova.remote",
-        "output": [],
-        "custom_prefix": "PS C:\\Users\\khyles> ",
-        "custom_start_delay": 1.0,
-        "custom_end_delay": 1.5,
-    }
+ {
+ "input": "ssh nova@ProjectNova.remote",
+ "output": [],
+ "custom_prefix": "PS C:\\Users\\khyles> ",
+ "custom_start_delay": 1.0,
+ "custom_end_delay": 1.5,
+ }
 )
 # → 1 prompt row (PS ...> + ssh ...) with 1s start delay and 1.5s end delay
-#   no output rows, but the delays still advance t so the next command waits.
+# no output rows, but the delays still advance t so the next command waits.
 ```
 
 ## Testing Timing

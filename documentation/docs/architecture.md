@@ -10,7 +10,7 @@
 | Badge Modules | `apps/name_svg.py`, `apps/console_svg.py`, `apps/skills_svg.py` — data + `render_*_svg()` |
 | Content | `data/github_profile.html` (scraped snapshot, not used by `/test`) + live `<object>` gallery in `apps/test_page.py` |
 | Styling | No frontend framework — SVGs are self-contained; `/test` is a minimal HTML shell |
-| Proxy | `caddy:2-alpine` on `:7050`, loopback-only publish via tunnel, **no** `forward_auth` (intentionally public) |
+| Proxy | `caddy:2-alpine` on `:7050`, loopback-only publish via tunnel, **no** `GateKeeper gate` (intentionally public) |
 | Docs | MkDocs Material on `:8005` (`novaprotocol_documentation`), served by FastAPI + granian, **public** at `/documentation/*` |
 | Auth | None — public asset server; image embedders have no cookie jar |
 
@@ -23,31 +23,31 @@ This is a **single-service monolith** (`apps/` factory) — one purpose (serve t
 ```
 project/
 ├── apps/
-│   ├── __init__.py        # create_app() factory, access-log middleware, mounts /static
-│   ├── config.py          # frozen dataclass BaseConfig/DebugConfig/ProductionConfig + get_config()
-│   ├── routes.py          # APIRouter — GET /, /health, /name.svg, /console.svg, /skills.svg, /test
-│   ├── name_svg.py        # NOVA ASCII art + render_name_svg()
-│   ├── console_svg.py     # Full boot/console session + render_console_svg()
-│   ├── skills_svg.py      # Summary/tech-stack/cert/projects panes + render_skills_svg()
-│   └── test_page.py       # /test live gallery — embeds the three SVGs via <object>
+│ ├── __init__.py # create_app() factory, access-log middleware, mounts /static
+│ ├── config.py # pydantic-settings `Settings(BaseSettings)` + `get_config()` lru_cache (only `DEPLOYMENT_TYPE`)
+│ ├── routes.py # APIRouter — GET /, /health, /name.svg, /console.svg, /skills.svg, /test
+│ ├── name_svg.py # NOVA ASCII art + render_name_svg()
+│ ├── console_svg.py # Full boot/console session + render_console_svg()
+│ ├── skills_svg.py # Summary/tech-stack/cert/projects panes + render_skills_svg()
+│ └── test_page.py # /test live gallery — embeds the three SVGs via <object>
 ├── utilities/
-│   └── terminal_svg/      # Standalone reusable lib — no imports from apps/
-│       ├── __init__.py    # Re-exports TerminalSVG, Style, parse_ansi, palette
-│       ├── ansi.py        # SGR parsing + palette + Style/Segment
-│       ├── timeline.py    # build_timeline() — per-char begin times
-│       ├── render.py      # render_svg() — svgwrite + SMIL <animate>
-│       ├── core.py        # TerminalSVG facade — entries → timeline → SVG
-│       └── __main__.py    # Demo — write + open a temp SVG
+│ └── terminal_svg/ # Standalone reusable lib — no imports from apps/
+│ ├── __init__.py # Re-exports TerminalSVG, Style, parse_ansi, palette
+│ ├── ansi.py # SGR parsing + palette + Style/Segment
+│ ├── timeline.py # build_timeline() — per-char begin times
+│ ├── render.py # render_svg() — svgwrite + SMIL <animate>
+│ ├── core.py # TerminalSVG facade — entries → timeline → SVG
+│ └── __main__.py # Demo — write + open a temp SVG
 ├── data/
-│   └── github_profile.html # Ignored snapshot (gitignored) — not served
-├── static/.gitkeep        # Mounted at /static (empty, reserved)
-├── templates/             # (none — SVGs are code-generated, /test is inline HTML)
+│ └── github_profile.html # Ignored snapshot (gitignored) — not served
+├── static/.gitkeep # Mounted at /static (empty, reserved)
+├── templates/ # (none — SVGs are code-generated, /test is inline HTML)
 ├── caddy/Caddyfile + Dockerfile
-├── documentation/         # MkDocs site (this site)
-├── wsgi.py                # granian target wsgi:app — app = create_app()
-├── run.py                 # uvicorn dev entrypoint — --mode debug|production
-├── Dockerfile             # python:3.14-slim, fonts-dejavu-core, appuser uid 10001, granian on 8000
-└── compose.yaml           # app + caddy + documentation
+├── documentation/ # MkDocs site (this site)
+├── wsgi.py # granian target wsgi:app — app = create_app()
+├── run.py # uvicorn dev entrypoint — --mode debug|production
+├── Dockerfile # python:3.14-slim, fonts-dejavu-core, appuser uid 10001, granian on 8000
+└── compose.yaml # app + caddy + documentation
 ```
 
 ### App factory
@@ -56,15 +56,14 @@ project/
 # apps/__init__.py
 from apps.config import get_config
 
-
 def create_app() -> FastAPI:
-    config = get_config()
-    app = FastAPI(title="NovaProtocol Assets", debug=config.DEBUG)
-    app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
-    from apps.routes import router
+ config = get_config()
+ app = FastAPI(title="NovaProtocol Assets", debug=config.DEBUG)
+ app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+ from apps.routes import router
 
-    app.include_router(router)
-    return app
+ app.include_router(router)
+ return app
 ```
 
 `wsgi.py` calls it once (`app = create_app()`); tests call `create_app()` per test via `TestClient`. No module-level `app = FastAPI()` inside `apps/`. The factory also installs a tiny access-log middleware that mirrors `shared/logger` style but without SQLite.
@@ -73,40 +72,31 @@ def create_app() -> FastAPI:
 
 ```python
 # apps/config.py
-@dataclass(frozen=True)
-class BaseConfig:
-    DEBUG: bool = False
+class Settings(BaseSettings):
+ DEPLOYMENT_TYPE: str = "debug"
 
+ @property
+ def DEBUG(self) -> bool:
+ return self.DEPLOYMENT_TYPE.lower() == "debug"
 
-@dataclass(frozen=True)
-class DebugConfig(BaseConfig):
-    DEBUG: bool = True
-
-
-@dataclass(frozen=True)
-class ProductionConfig(BaseConfig):
-    DEBUG: bool = False
-
-
-def get_config() -> BaseConfig:
-    return (
-        ProductionConfig() if os.environ.get("DEPLOYMENT_TYPE") == "production" else DebugConfig()
-    )
+@lru_cache
+def get_config() -> Settings:
+ return Settings()
 ```
 
-No secrets — only `DEPLOYMENT_TYPE`. Read strictly from `os.environ`; no `load_dotenv`.
+No secrets — only `DEPLOYMENT_TYPE` (live `NovaProtocol/apps/config.py`). No `load_dotenv`.
 
 ### Routing
 
 One `APIRouter` in `apps/routes.py` — five routes plus `/test`:
 
 ```python
-@router.get("/")           # -> {"service": "NovaProtocol Assets", "status": "ok"}
-@router.get("/health")     # -> {"status": "ok"}  — compose + Caddy probe
-@router.get("/name.svg")   # -> image/svg+xml, no-store
+@router.get("/") # -> {"service": "NovaProtocol Assets", "status": "ok"}
+@router.get("/health") # -> {"status": "ok"} — compose + Caddy probe
+@router.get("/name.svg") # -> image/svg+xml, no-store
 @router.get("/console.svg")
 @router.get("/skills.svg")
-@router.get("/test")       # -> text/html gallery (apps/test_page.py)
+@router.get("/test") # -> text/html gallery (apps/test_page.py)
 ```
 
 SVG routes return `Response(content=render_*_svg(), media_type="image/svg+xml", headers=_NO_CACHE)` where `_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}`. The gallery at `/test` returns `HTMLResponse(test_page.render_test_page())` — it builds a self-contained HTML doc embedding the three live SVGs via `<object data="/name.svg">` so SMIL animations run.
@@ -116,13 +106,13 @@ SVG routes return `Response(content=render_*_svg(), media_type="image/svg+xml", 
 ## Terminal SVG Pipeline
 
 ```
-COMMANDS (apps/*_svg.py)  →  TerminalSVG (utilities/terminal_svg/core.py)
-                                │
-                                ├─ build_timeline()  (timeline.py)
-                                │     parse_ansi() per line (ansi.py) → per-Char begin times
-                                │
-                                └─ render_svg()      (render.py)
-                                      svgwrite + <animate> (SMIL) → SVG string
+COMMANDS (apps/*_svg.py) → TerminalSVG (utilities/terminal_svg/core.py)
+ │
+ ├─ build_timeline() (timeline.py)
+ │ parse_ansi() per line (ansi.py) → per-Char begin times
+ │
+ └─ render_svg() (render.py)
+ svgwrite + <animate> (SMIL) → SVG string
 ```
 
 - **Entries** are dicts: `{"input": "...", "output": ["..."], "custom_prefix": "...", "custom_start_delay": s, "custom_end_delay": s, "delay": s}`. Badge modules define `COMMANDS: list[dict]` as session scripts.
@@ -139,21 +129,21 @@ Full deep-dives: [Terminal SVG Overview](terminal-svg/index.md), [SVG Badges](sv
 
 ```mermaid
 graph TB
-    TUN["cloudflared tunnel<br/>external network<br/>cloudflared-tunnel_default"] --> CADDY
-    CADDY["Caddy<br/>:7050<br/>novaprotocol_caddy<br/>caddy:2-alpine"] --> APP["app<br/>novaprotocol_main:8000<br/>granian asgi<br/>python:3.14-slim"]
-    CADDY --> DOCS["documentation<br/>novaprotocol_documentation:8005<br/>granian asgi"]
+ TUN["cloudflared tunnel<br/>external network<br/>cloudflared-tunnel"] --> CADDY
+ CADDY["Caddy<br/>:7050<br/>novaprotocol_caddy<br/>caddy:2-alpine"] --> APP["app<br/>novaprotocol_main:8000<br/>granian asgi<br/>python:3.14-slim"]
+ CADDY --> DOCS["documentation<br/>novaprotocol_documentation:8005<br/>granian asgi"]
 ```
 
 - Caddy listens on `:7050` (`Caddyfile` site address `:7050`), matching `compose.yaml` `127.0.0.1:7050:7050` and the app's `EXPOSE 8000`.
-- `handle /health { reverse_proxy novaprotocol_main:8000 }` bypasses everything (tunnel and compose probes). No `forward_auth`.
+- `handle /health { reverse_proxy novaprotocol_main:8000 }` bypasses everything (tunnel and compose probes). No `GateKeeper gate`.
 - `handle_path /documentation/* { reverse_proxy novaprotocol_documentation:8005 }` — **public**, prefix-stripped (`handle_path`). Serves the prebuilt MkDocs `site/` via FastAPI on `:8005`.
 - `handle { reverse_proxy novaprotocol_main:8000 }` — everything else public (the three SVGs and `/test`).
-- Proxy targets use `container_name` (`novaprotocol_main`, `novaprotocol_documentation`), never the generic service name `app`, to avoid the shared-network DNS collision where every `app` alias on `cloudflared-tunnel_default` would resolve together (see `reference/docker/compose.md` → Shared-network DNS gotcha).
-- Compose: app and docs on `default`; caddy on `default` + `cloudflared-tunnel` (external). Caddy publishes `127.0.0.1:7050:7050` loopback-only.
+- Proxy targets use `container_name` (`novaprotocol_main`, `novaprotocol_documentation`), never the generic service name `app`, to avoid the shared-network DNS collision where every `app` alias on `cloudflared-tunnel` would resolve together (see `reference/docker/compose.md` → Shared-network DNS gotcha).
+- Compose: app and docs on `default`; caddy on `default` (external). Caddy publishes `127.0.0.1:7050:7050` loopback-only.
 - Healthchecks: `python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:<port>/health')"` with 30s interval, 5s timeout, 3 retries.
 
 !!! note "No gatekeeper network"
-    This is the only portfolio project whose `compose.yaml` does **not** join `gatekeeper_default` and whose `Caddyfile` has **no** `forward_auth gatekeeper:7000`. That is intentional and documented here and in [Docker & Deployment](docker.md). Adding a gate would break GitHub profile embeds.
+ This is the only portfolio project whose `compose.yaml` does **not** join `gatekeeper` and whose `Caddyfile` has **no** `GateKeeper gate`. That is intentional and documented here and in [Docker & Deployment](docker.md). Adding a gate would break GitHub profile embeds.
 
 ---
 

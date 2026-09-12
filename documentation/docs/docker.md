@@ -6,61 +6,61 @@
 
 ```yaml
 services:
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: novaprotocol_main
-    restart: unless-stopped
-    environment:
-      DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:?DEPLOYMENT_TYPE is required}
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    networks:
-      - default
+ app:
+ build:
+ context: .
+ dockerfile: Dockerfile
+ container_name: novaprotocol_main
+ restart: unless-stopped
+ environment:
+ DEPLOYMENT_TYPE: ${DEPLOYMENT_TYPE:?DEPLOYMENT_TYPE is required}
+ healthcheck:
+ test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+ interval: 30s
+ timeout: 5s
+ retries: 3
+ start_period: 10s
+ networks:
+ - default
 
-  documentation:
-    build:
-      context: .
-      dockerfile: documentation/Dockerfile
-    container_name: novaprotocol_documentation
-    restart: unless-stopped
-    expose:
-      - "8005"
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8005/health')"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
-    networks:
-      - default
+ documentation:
+ build:
+ context: .
+ dockerfile: documentation/Dockerfile
+ container_name: novaprotocol_documentation
+ restart: unless-stopped
+ expose:
+ - "8005"
+ healthcheck:
+ test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8005/health')"]
+ interval: 30s
+ timeout: 5s
+ retries: 3
+ start_period: 10s
+ networks:
+ - default
 
-  caddy:
-    build:
-      context: ./caddy
-      dockerfile: Dockerfile
-    container_name: novaprotocol_caddy
-    restart: unless-stopped
-    ports:
-      - "127.0.0.1:7050:7050"
-    networks:
-      - default
-      - gatekeeper_dynamic
-      - cloudflared-tunnel
+ caddy:
+ build:
+ context: ./caddy
+ dockerfile: Dockerfile
+ container_name: novaprotocol_caddy
+ restart: unless-stopped
+ ports:
+ - "127.0.0.1:7050:7050"
+ networks:
+ - default
+ - gatekeeper
+ - cloudflared-tunnel
 
 networks:
-  default:
-  gatekeeper_dynamic:
-    external: true
-    name: gatekeeper_dynamic
-  cloudflared-tunnel:
-    external: true
-    name: cloudflared-tunnel_default
+ default:
+ gatekeeper:
+ external: true
+ name: gatekeeper
+ cloudflared-tunnel:
+ external: true
+ name: cloudflared-tunnel
 ```
 
 ### Naming
@@ -71,7 +71,7 @@ networks:
 | `documentation` | `novaprotocol_documentation` | MkDocs FastAPI on `8005` |
 | `caddy` | `novaprotocol_caddy` | Caddy on `7050` |
 
-Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app` — avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel_default` / `gatekeeper_dynamic` would resolve together (see `reference/docker/compose.md`).
+Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app` — avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel` / `gatekeeper` would resolve together (see `reference/docker/compose.md`).
 
 ### Environment
 
@@ -93,12 +93,12 @@ No `.env` file, no `env_file:`, no secrets — the monolith has no DB or token (
 Verify:
 
 ```bash
-docker inspect novaprotocol_main --format '{{.State.Health.Status}}'           # healthy
-docker inspect novaprotocol_documentation --format '{{.State.Health.Status}}'  # healthy
-curl -s http://127.0.0.1:8000/health   # direct app
-curl -s http://127.0.0.1:8005/health   # direct docs (from sibling or localhost if published)
-curl -s http://127.0.0.1:7050/health   # via Caddy
-curl -s http://127.0.0.1:7050/documentation/ | head  # docs via Caddy (public)
+docker inspect novaprotocol_main --format '{{.State.Health.Status}}' # healthy
+docker inspect novaprotocol_documentation --format '{{.State.Health.Status}}' # healthy
+curl -s http://127.0.0.1:8000/health # direct app
+curl -s http://127.0.0.1:8005/health # direct docs (from sibling or localhost if published)
+curl -s http://127.0.0.1:7050/health # via Caddy
+curl -s http://127.0.0.1:7050/documentation/ | head # docs via Caddy (public)
 ```
 
 ---
@@ -117,8 +117,8 @@ WORKDIR /app
 
 COPY requirements.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends fonts-dejavu-core && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install --no-cache-dir -r requirements.txt
+ rm -rf /var/lib/apt/lists/* && \
+ pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
@@ -156,7 +156,7 @@ COPY documentation/ .
 RUN mkdocs build
 
 RUN useradd --create-home --uid 10001 appuser \
-    && chown -R appuser:appuser /app
+ && chown -R appuser:appuser /app
 
 EXPOSE 8005
 
@@ -181,21 +181,21 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 ## Caddy
 
-`caddy/Caddyfile` — single port `:7050`, loopback-only via `127.0.0.1:7050:7050` tunnel reachability, **public** (no `forward_auth`).
+`caddy/Caddyfile` — single port `:7050`, loopback-only `127.0.0.1:7050:7050`, **public** via GateKeeper `none`-rules (zero per-app gate in the Caddyfile).
 
 ```caddy
 :7050 {
-    handle /health {
-        reverse_proxy novaprotocol_main:8000
-    }
+ handle /health {
+ reverse_proxy novaprotocol_main:8000
+ }
 
-    handle_path /documentation/* {
-        reverse_proxy novaprotocol_documentation:8005
-    }
+ handle_path /documentation/* {
+ reverse_proxy novaprotocol_documentation:8005
+ }
 
-    handle {
-        reverse_proxy novaprotocol_main:8000
-    }
+ handle {
+ reverse_proxy novaprotocol_main:8000
+ }
 }
 ```
 
@@ -209,8 +209,8 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 `handle_path` strips the prefix before proxying — the docs app sees `/` for `GET /documentation/` and `/getting-started/` for `GET /documentation/getting-started/`.
 
-!!! note "Intentionally no gatekeeper"
-    Unlike Buddys/Portfolio/SolveSpace/WBS, NovaProtocol's Caddyfile has **no** `forward_auth gatekeeper:7000 { uri /api/authz/forward-auth }` and `compose.yaml` does **not** join `gatekeeper_default`. The assets are GitHub profile embeds fetched by camo without cookies — gating would `302` to login and the image would break. Documentation follows the same rule — `/documentation/*` is public. This is the declared exception to `reference/gatekeeper/*` and `reference/docker/caddy.md`.
+!!! note "Intentionally public via GateKeeper rules"
+ Unlike Buddys/Portfolio/SolveSpace/WBS, NovaProtocol's routes use GateKeeper `none`-rule decisions instead of access-code gating — the assets are GitHub profile embeds fetched by camo without cookies, so a login redirect would break the image. The caddy still joins the GateKeeper-owned `gatekeeper` network (live `NovaProtocol/compose.yaml`: caddy on `default` + `gatekeeper`) — public-ness lives in GateKeeper rules, not in network membership. Documentation follows the same rule — `/documentation/*` is public. This is the declared exception to the default gate-everything rule.
 
 ### Verify Caddy
 
@@ -227,10 +227,9 @@ curl -s http://127.0.0.1:7050/documentation/ | grep -i "NovaProtocol"
 ## Networks
 
 - `default` — bridge, intra-project traffic (Caddy ↔ app, Caddy ↔ docs).
-- `cloudflared-tunnel` — external `cloudflared-tunnel_default`, ingress via `cloudflared tunnel` → `http://localhost:7050`.
-- No `gatekeeper_default` — see the note above.
+- `gatekeeper` — external (`name: gatekeeper`, GateKeeper-owned); caddy joins it so GateKeeper can route here. Public-ness comes from `none`-rules, not from leaving the network (live `NovaProtocol/compose.yaml`).
 
-TLS is terminated at the tunnel edge (Cloudflare) — Caddy is plain HTTP on `:7050`.
+TLS is terminated at the tunnel edge (Cloudflare) via `gatekeeper_caddy:7000` (sole tunnel ingress) — this Caddy is plain HTTP on `:7050`, reachable publicly only through GateKeeper routes.
 
 ---
 
