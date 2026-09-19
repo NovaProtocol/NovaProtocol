@@ -159,8 +159,8 @@ Run: `pytest -q` or `pre-commit run --all`.
 
 ## Deployment Notes
 
-- **Remote only.** The deployed `compose.yaml` lives on the Dockhand host; use `scripts/docker.sh` to inspect production, never `docker ps` locally. Owner deploys; agents fix code and commit.
+- **Remote only.** The deployed `compose.yaml` lives on the Dockhand host; use `scripts/docker.sh` to inspect production, never `docker ps` locally. The owner deploys; changes land here first and the host recreates the stack from them.
 - `ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1` set early in Dockerfiles.
 - Images run as non-root `appuser` (uid `10001`), `EXPOSE` matches Caddy targets, `CMD` is exec-form granian.
 - Pre-commit gates all commits locally; no `.github/workflows` (billable Actions).
-- `docs/` is gitignored superpowers scratch (`docs/superpowers/plans/`); real docs are `documentation/` (tracked, Material theme).
+- `docs/` is scratch and stays gitignored; the published documentation is `documentation/` (tracked, Material theme, built into its own image).

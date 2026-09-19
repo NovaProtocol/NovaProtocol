@@ -10,11 +10,5 @@ __pycache__/
 .mypy_cache/
 .pytest_cache/
 docs/
-.agents/
-.superpowers/
-.opencode/
-.claude/
-.cursor/
-.continue/
 *.code-workspace
 data/github_profile.html
