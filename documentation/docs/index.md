@@ -36,9 +36,9 @@ graph TB
 - [API Reference](api-reference.md) — HTTP routes, caching headers, and content types.
 - [Docker & Deployment](docker.md) — compose, Caddy, and prod notes.
 
-## Relationship to House Reference
+## Conventions
 
-This project follows `~/Projects/agent_stuff/reference/` for monolith layout (`apps/` factory, `utilities/` standalone, `data/` static HTML), Docker conventions (`python:3.14-slim`, `granian`, `appuser` uid `10001`, loopback-only publish), Caddy public routing (no `GateKeeper gate`), and per-project MkDocs at `documentation/` (Material theme, `8005`, `handle_path /documentation/*`).
+The layout is a monolith: an `apps/` factory, standalone tooling under `utilities/`, and static HTML under `data/`. Images build from `python:3.14-slim`, serve with `granian` in exec form, run as a non-root `appuser` (uid `10001`), and publish on loopback only. Caddy proxies every path straight through — the app and this documentation are public, with no gate in front of either. Documentation is built with MkDocs Material from `documentation/`, served on `8005`, and reached through `handle_path /documentation/*`.
 
 ??? note "Intentionally public — no GateKeeper"
  Unlike Buddy's, Portfolio, SolveSpace, and WBS, NovaProtocol is **not** gated. The SVGs are `<img src="https://github.projectnova.download/name.svg">` embeds in a GitHub profile README. GitHub's image proxy and browsers fetch without cookies — `GateKeeper gate` would `302` to login and the image would break. The Caddyfile therefore has no `GateKeeper gate` block at all, and `compose.yaml` does not join `gatekeeper`. Documentation follows the same rule — `/documentation/*` is public — because the project's assets are public.
