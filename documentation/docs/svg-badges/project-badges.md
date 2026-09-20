@@ -11,7 +11,7 @@ are embedded in each project's `README.md` and on the project's page in the port
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/public/projects/{slug}.svg` | The badge. `image/svg+xml`, `no-store`. `404` for an unknown slug |
+| `GET` | `/public/project/{slug}.svg` | The badge. `image/svg+xml`, `no-store`. `404` for an unknown slug |
 | `GET` | `/projects/{slug}.svg` | Legacy short form, `301` to the canonical path |
 
 `GET /public` lists every canonical asset, including one entry per project badge.
@@ -31,26 +31,36 @@ are embedded in each project's `README.md` and on the project's page in the port
 `list[dict]` shape the other badges use, and `slugs()` returns them in a stable order so the index
 page and the tests agree.
 
-## Writing a Session
+## How the Badge Is Built
 
-A session shows the project **doing its job** rather than listing the technology it is built with.
-Each entry is an `input` the reader can follow and the `output` that results, so the badge reads as a
-demonstration instead of a claim:
+The session runs `./get_project_name.sh` and prints the project name as block art, followed by a
+one-line description. The art is generated from a real FIGlet font, so nothing is hand-drawn:
 
 ```python
-"water-billing-system": [
-    {
-        "input": "billing read --meter 10023 --value 1284",
-        "output": [
-            f"{GRAY}computing password on device, no network needed{RESET}",
-            f"{GREEN}reading recorded{RESET} {GRAY}meter=10023 value=1284 m3{RESET}",
-        ],
-    },
-]
+"gatekeeper": {
+    "art": "GateKeeper",                                  # rendered in the block font
+    "blurb": "one login for a family of self-hosted web apps",
+    "detail": "signed session cookie, per-path rules, instant revocation",
+},
 ```
 
-Keep sessions to three entries or fewer. A badge is glanced at, and an animation that runs long is
-worse than no animation.
+- `apps/fonts/ansi_shadow.flf` is the ANSI Shadow FIGlet font, the widely used block style.
+- `apps/figlet.py` parses it. It implements only the subset of the FIGlet format this font uses,
+  so there is no new dependency.
+- `apps/project_svg.py` maps a slug to a name and a sentence, then hands the art to `TerminalSVG`.
+
+The font is 7 rows tall; the last row is the blank shadow baseline that gives the letters their
+depth, which is why every glyph sits on six carved rows and one empty one.
+
+## Adding a Badge
+
+1. Add the slug to `SLUGS` and an entry to `PROJECTS` in `apps/project_svg.py`.
+2. Add a row to the table above.
+3. Embed it with the canonical URL.
+
+No route or template change is needed: the route takes the slug as a path parameter and the index
+page enumerates `slugs()`. A name that is longer than about 14 characters will be very wide at this
+font size, so keep `art` short.
 
 ## Adding a Badge
 

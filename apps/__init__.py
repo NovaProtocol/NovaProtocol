@@ -36,10 +36,14 @@ def _configure_logging() -> None:
                 logger_factory=structlog.PrintLoggerFactory(file=sys.stdout),
                 cache_logger_on_first_use=True,
             )
-            return
         except Exception:
             pass
+    # The access-log middleware logs through the stdlib root logger, so it needs
+    # a handler whichever branch configured structlog. Without this the service
+    # serves requests silently and there is no way to see what it was asked for.
     logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
+    if _HAS_STRUCTLOG:
+        return
 
 
 def create_app() -> FastAPI:

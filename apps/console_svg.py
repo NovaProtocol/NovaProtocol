@@ -151,7 +151,7 @@ COMMANDS: list[dict] = [
     {
         "input": "systemctl status caddy",
         "output": [
-            f"{GREEN}\u25cf caddy.service \u2014 Caddy web server{RESET}",
+            f"{GREEN}\u25cf caddy.service - Caddy web server{RESET}",
             f"{GREEN}   Active: active (running) since Sun 2026-08-09{RESET}",
         ],
     },

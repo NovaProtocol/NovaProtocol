@@ -37,7 +37,7 @@ async def skills_route():
 
 @router.get("/projects/{slug}.svg", include_in_schema=False)
 async def project_route(slug: str):
-    return RedirectResponse(url=f"/public/projects/{slug}.svg", status_code=301)
+    return RedirectResponse(url=f"/public/project/{slug}.svg", status_code=301)
 
 @router.get("/public/name.svg")
 async def public_name_route():
@@ -66,7 +66,7 @@ async def public_skills_route():
     )
 
 
-@router.get("/public/projects/{slug}.svg")
+@router.get("/public/project/{slug}.svg")
 async def public_project_route(slug: str):
     try:
         content = project_svg.render_project_badge(slug)
@@ -82,10 +82,15 @@ async def public_project_route(slug: str):
         headers=_NO_CACHE,
     )
 
+@router.get("/public/projects/{slug}.svg", include_in_schema=False)
+async def project_plural_route(slug: str):
+    """The plural path an earlier revision served. Redirect, never 404."""
+    return RedirectResponse(url=f"/public/project/{slug}.svg", status_code=301)
+
 @router.get("/public")
 async def public_index():
     badges = "".join(
-        f"<li><a href='/public/projects/{slug}.svg'>/public/projects/{slug}.svg</a></li>"
+        f"<li><a href='/public/project/{slug}.svg'>/public/project/{slug}.svg</a></li>"
         for slug in project_svg.slugs()
     )
     body = (
