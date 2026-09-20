@@ -139,7 +139,7 @@ def render_svg(
     )
     dwg.add(dwg.rect(insert=(6, 6), size=(width - 12, 26), fill="#161b22", rx=4))
     title = dwg.text(
-        "nova@ProjectNova: ~ \u2014 bash",
+        "nova@ProjectNova: ~ - bash",
         insert=(PAD_X, 24),
         font_family=FONT,
         font_size=12,

@@ -1,150 +1,134 @@
-"""Per-project terminal badges, served for the portfolio and for README embeds.
+"""Per-project terminal badges, served for README embeds and the portfolio.
 
-Each badge is a short animated terminal session that shows what the project is and
-what it does, rendered with the same `TerminalSVG` machinery as the profile
-badges. The content is deliberately about behaviour rather than implementation:
-a reader sees the project do its job instead of reading a technology list.
+Each badge is a short animated terminal session that runs `./get_project_name.sh`
+and prints the project name as ANSI Shadow block art, followed by a one-line
+summary of what the project does. The art comes from the bundled FIGlet font
+(`apps/fonts/ansi_shadow.flf`) via `apps.figlet`, so a new project is a name and
+a sentence rather than a hand-drawn block of characters.
 
-Badges are keyed by slug so a project page and a README can point at the same
-asset.
+The route is `/public/project/<slug>.svg`.
 """
 
 from __future__ import annotations
 
+from apps import figlet
 from utilities.terminal_svg import TerminalSVG
 
 # ANSI helpers, matching the other badge modules.
-RED = "\x1b[31m"
 GREEN = "\x1b[32m"
-YELLOW = "\x1b[33m"
 BLUE = "\x1b[34m"
 CYAN = "\x1b[36m"
 GRAY = "\x1b[90m"
-BOLD = "\x1b[1m"
 RESET = "\x1b[0m"
 
-# Each session is a list of (input, output) entries. Keep them short: a badge is
-# read at a glance, and a long animation is worse than no animation.
-SESSIONS: dict[str, list[dict]] = {
-    "gatekeeper": [
-        {
-            "input": "curl -sI https://app.example.com/private",
-            "output": [
-                f"{YELLOW}HTTP/2 302{RESET}",
-                "location: https://gate.app.example.com/login",
-                f"{GRAY}no cookie, no access{RESET}",
-            ],
-        },
-        {
-            "input": "curl -sI https://app.example.com/private \\",
-            "output": [
-                f"{GRAY}  -H 'Cookie: gate=eyJhbGciOi...'{RESET}",
-                "",
-                f"{GREEN}HTTP/2 200{RESET}",
-                f"{GRAY}signed cookie accepted, forwarding{RESET}",
-            ],
-        },
-        {
-            "input": "gatekeeper codes revoke --label recruiter",
-            "output": [f"{GREEN}revoked{RESET} {GRAY}1 code, 3 apps signed out{RESET}"],
-        },
-    ],
-    "water-billing-system": [
-        {
-            "input": "billing read --meter 10023 --value 1284",
-            "output": [
-                f"{GRAY}computing password on device, no network needed{RESET}",
-                f"{GREEN}reading recorded{RESET} {GRAY}meter=10023 value=1284 m3{RESET}",
-            ],
-        },
-        {
-            "input": "billing compute --meter 10023 --period 2026-08",
-            "output": [
-                f"{GRAY}usage 22.1 m3 across 5 tariff tiers{RESET}",
-                "billed_amount  PHP 463.00",
-                "penalty        PHP   0.00",
-            ],
-        },
-        {
-            "input": "billing pay --meter 10023 --amount 500",
-            "output": [
-                f"{GREEN}applied to oldest unpaid first{RESET}",
-                f"{GRAY}remaining 37.00 held as account credit{RESET}",
-            ],
-        },
-    ],
-    "mle-review": [
-        {
-            "input": "mle solve 'P = 2*pi*N*T/60'",
-            "output": [
-                f"{GRAY}dimensions checked, no unit mismatch{RESET}",
-                "P = 2*pi*N*T/60",
-            ],
-        },
-        {
-            "input": "mle review --topic thermodynamics --count 5",
-            "output": [
-                f"{GREEN}5 questions{RESET} {GRAY}with worked solutions{RESET}",
-                f"{GRAY}2 flagged for a second pass{RESET}",
-            ],
-        },
-    ],
-    "solvespace": [
-        {
-            "input": "./solvespace run solution.py --problem 1846C",
-            "output": [
-                f"{GRAY}entering sandbox: 1 GB cap, 25 s cpu, no network{RESET}",
-                f"{GREEN}case 1 OK{RESET}  {GREEN}case 2 OK{RESET}  {RED}case 3 WA{RESET}",
-                f"{GRAY}verdict: wrong answer on case 3{RESET}",
-            ],
-        },
-        {
-            "input": "./solvespace run solution.py --problem 1846C",
-            "output": [
-                f"{GREEN}case 1 OK{RESET}  {GREEN}case 2 OK{RESET}  {GREEN}case 3 OK{RESET}",
-                f"{GREEN}accepted{RESET} {GRAY}3/3 cases, 0.31 s{RESET}",
-            ],
-        },
-    ],
-    "portfolio": [
-        {
-            "input": "./portfolio serve",
-            "output": [
-                f"{GREEN}projects  6{RESET} {GRAY}each with a live demo{RESET}",
-                f"{GREEN}resume    rendered{RESET} {GRAY}from data, never stale{RESET}",
-                f"{GRAY}behind GateKeeper like everything else{RESET}",
-            ],
-        },
-    ],
-    "novaprotocol": [
-        {
-            "input": "curl -s https://github.example.com/public/name.svg",
-            "output": [
-                f"{GRAY}<svg baseProfile=\"full\" ...{RESET}",
-                f"{GREEN}animated svg rendered{RESET} {GRAY}on every page load{RESET}",
-            ],
-        },
-    ],
+# Every slug the route will answer for.
+SLUGS: tuple[str, ...] = (
+    "gatekeeper",
+    "water-billing-system",
+    "mle-review",
+    "solvespace",
+    "portfolio",
+    "novaprotocol",
+)
+
+# What each badge prints. `art` is the name rendered in the block font, `blurb`
+# is the one line under it, and `detail` is the muted second line.
+PROJECTS: dict[str, dict[str, str]] = {
+    "gatekeeper": {
+        "art": "GateKeeper",
+        "url": "https://gatekeeper.projectnova.download",
+        "blurb": "one login for a family of self-hosted web apps",
+    },
+    "water-billing-system": {
+        "art": "Water Billing",
+        "url": "https://water-billing-system.projectnova.download",
+        "blurb": "utility billing, from the meter reading to the receipt",
+    },
+    "mle-review": {
+        "art": "MELE Review",
+        "url": "https://melereview.projectnova.download",
+        "blurb": "a study companion for the licensure exam",
+    },
+    "solvespace": {
+        "art": "SolveSpace",
+        "url": "https://solver.projectnova.download",
+        "blurb": "a private competitive-programming practice workspace",
+    },
+    "portfolio": {
+        "art": "Portfolio",
+        "url": "https://portfolio.projectnova.download",
+        "blurb": "the site that shows the rest of these projects",
+    },
+    "novaprotocol": {
+        "art": "NovaProtocol",
+        "url": "https://github.projectnova.download",
+        "blurb": "a dynamic profile asset server",
+    },
 }
 
-DEFAULT_COMMAND_PREFIX = f"{GREEN}admin@{BLUE}projectnova{RESET}$ "
+DEFAULT_COMMAND_PREFIX = f"{GREEN}nova@ProjectNova:{BLUE}~{RESET}$ "
 
 
 def render_project_badge(slug: str, max_line: int = 8) -> str:
-    """Render the animated terminal badge for a project slug."""
-    session = SESSIONS.get(slug)
-    if session is None:
-        raise KeyError(slug)
+    """Render the animated terminal badge for a project slug.
+
+    Mirrors `name_svg.render_name_svg`: the same ssh-and-password preamble, then
+    one script whose output fills the terminal exactly.
+
+    The line arithmetic is the whole trick and it is not negotiable. The session
+    runs three prompt lines and eight output lines through an eight-row viewport,
+    so the three prompts scroll away and the eight output lines come to rest
+    filling it. That is what `name.svg` does, and it is why the art lands in
+    frame instead of being cut.
+
+    The font draws seven rows and the last is the empty baseline that gives the
+    block letters their shadow, so only the six carved rows are emitted. Six
+    carved rows plus the name and the link is eight, which is exactly `max_line`.
+
+    Raises `KeyError` for an unknown slug so the route can answer `404`.
+    """
+    project = PROJECTS[slug]
+    # Drop the blank baseline: it costs a row the terminal does not have.
+    art = [line for line in figlet.render(project["art"]) if line.strip()]
 
     view = TerminalSVG(max_line=max_line)
     view.command_prefix = DEFAULT_COMMAND_PREFIX
     view.delay_per_char_input = 0.03
     view.delay_per_char_output = 0.0
-    for entry in session:
-        view.add_line(entry)
+
+    # Same preamble as name.svg. These prompt lines scroll off the top.
+    view.add_line(
+        {
+            "input": "ssh nova@ProjectNova.remote",
+            "output": [],
+            "custom_prefix": "PS C:\\Users\\khyles> ",
+            "custom_start_delay": 1,
+            "custom_end_delay": 1.5,
+        }
+    )
+    view.add_line(
+        {
+            "input": "************",
+            "output": [],
+            "custom_prefix": "nova@ProjectNova.local's password: ",
+            "custom_start_delay": 1,
+            "custom_end_delay": 2.5,
+        }
+    )
+    view.add_line(
+        {
+            "input": "./get_project_name.sh",
+            "output": [
+                *[f"{CYAN}{line}{RESET}" for line in art],
+                f"{GREEN}> {project['url']}{RESET}",
+                f"{GRAY}> {project['blurb']}{RESET}",
+            ],
+            "custom_start_delay": 0.5,
+        }
+    )
     return view.render()
 
 
 def slugs() -> list[str]:
     """Slugs with a badge, in a stable order."""
-    return sorted(SESSIONS)
+    return sorted(SLUGS)
