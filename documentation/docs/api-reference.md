@@ -52,7 +52,7 @@ curl -s https://github.projectnova.download/health # prod via tunnel
 
 Name badge, NOVA block art + identity. See [Name Badge](svg-badges/name-svg.md).
 
-- **Response:** `200 image/svg+xml`, `Cache-Control: no-store, max-age=0`
+- **Response:** `200 image/svg+xml`, `Cache-Control: public, max-age=300`, plus a strong `ETag`
 - **Body:** SVG string from `apps/name_svg.py::render_name_svg()` via `utilities/terminal_svg`.
 - **Example:**
 
@@ -74,7 +74,7 @@ curl -s http://127.0.0.1:8000/public/name.svg | head -c 200
 
 Console badge, boot + compose + tunnel bring-up narrative. See [Console Badge](svg-badges/console-svg.md).
 
-- **Response:** `200 image/svg+xml`, `Cache-Control: no-store, max-age=0`
+- **Response:** `200 image/svg+xml`, `Cache-Control: public, max-age=300`, plus a strong `ETag`
 - **Body:** SVG from `apps/console_svg.py::render_console_svg(max_line=8)`.
 - **Embed:**
 
@@ -88,7 +88,7 @@ Console badge, boot + compose + tunnel bring-up narrative. See [Console Badge](s
 
 Skills badge, career panes (summary, stack, cert, projects). See [Skills Badge](svg-badges/skills-svg.md).
 
-- **Response:** `200 image/svg+xml`, `Cache-Control: no-store, max-age=0`
+- **Response:** `200 image/svg+xml`, `Cache-Control: public, max-age=300`, plus a strong `ETag`
 - **Body:** SVG from `apps/skills_svg.py::render_skills_svg()` (`max_line=20`).
 - **Embed:**
 
@@ -128,7 +128,7 @@ Live SVG gallery, self-contained HTML page embedding the three live badges via `
 </html>
 ```
 
-- **Use:** manual QA, `http://127.0.0.1:8000/test` in dev, `https://github.projectnova.download/test` in prod. Unlike the SVG routes, this page is `text/html` and does not set `no-store`.
+- **Use:** manual QA, `http://127.0.0.1:8000/test` in dev, `https://github.projectnova.download/test` in prod. Unlike the SVG routes, this page is `text/html` and sets no cache policy of its own.
 
 ---
 
@@ -137,12 +137,14 @@ Live SVG gallery, self-contained HTML page embedding the three live badges via `
 | Route | `Content-Type` | `Cache-Control` |
 |-------|----------------|-----------------|
 | `/`, `/health` | `application/json` | *(none)*, JSON, not cached by camo |
-| `/public/name.svg`, `/public/console.svg`, `/public/skills.svg` | `image/svg+xml` | `no-store, max-age=0` |
+| `/public/name.svg`, `/public/console.svg`, `/public/skills.svg` | `image/svg+xml` | `public, max-age=300` + `ETag` |
 | `/name.svg`, `/console.svg`, `/skills.svg` | `301 → /public/*.svg` | *(redirect)* |
 | `/test` | `text/html; charset=utf-8` | *(none)* |
 | `/documentation/*` (docs service) | `text/html` / assets | *(docs FastAPI defaults)* |
 
-The `no-store` on SVGs is deliberate, GitHub's image proxy (camo) would otherwise cache the first fetch and the animation would go stale. The SVG itself is re-rendered per request (no server-side cache).
+SVG responses carry a strong `ETag` derived from the rendered bytes, so a cache stores the render and then revalidates it: an `If-None-Match` that matches answers `304 Not Modified` with no body, and a changed render answers `200` with the new bytes. `public, max-age=300` is deliberate, a `private` response is skipped by every shared cache, so `public` is what lets Cloudflare and GitHub's image proxy (camo) store it, and the five-minute window bounds how long a change can go unseen if a cache never revalidates. The SVG is still rendered per request; the `ETag` makes a repeat fetch cheap, it does not cache the render itself.
+
+Measured behaviour worth knowing: camo applies roughly a 60-second lifetime to these URLs regardless of the origin header, so the practical staleness is about a minute, not the full five minutes. The animation cannot go stale in any case, its SMIL timings are relative to the SVG's own start, so a replayed copy plays from the beginning.
 
 ## Error Handling
 

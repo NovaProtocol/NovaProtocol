@@ -93,13 +93,13 @@ One `APIRouter` in `apps/routes.py`, five routes plus `/test`:
 ```python
 @router.get("/") # -> {"service": "NovaProtocol Assets", "status": "ok"}
 @router.get("/health") # -> {"status": "ok"}, compose + Caddy probe
-@router.get("/name.svg") # -> image/svg+xml, no-store
+@router.get("/public/name.svg") # -> image/svg+xml, public + ETag
 @router.get("/console.svg")
 @router.get("/skills.svg")
 @router.get("/test") # -> text/html gallery (apps/test_page.py)
 ```
 
-SVG routes return `Response(content=render_*_svg(), media_type="image/svg+xml", headers=_NO_CACHE)` where `_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}`. The gallery at `/test` returns `HTMLResponse(test_page.render_test_page())`, it builds a self-contained HTML doc embedding the three live SVGs via `<object data="/name.svg">` so SMIL animations run.
+SVG routes answer through one helper, `_svg_response(body, request)`, which stamps `_SVG_CACHE = {"Cache-Control": "public, max-age=300"}` and a strong `ETag` derived from the bytes. A request whose `If-None-Match` matches gets `304` with no body, so a cache revalidates cheaply and a changed render is picked up on the next check rather than after the full window. The gallery at `/test` returns `HTMLResponse(test_page.render_test_page())`, it builds a self-contained HTML doc embedding the three live SVGs via `<object data="/public/name.svg">` so SMIL animations run.
 
 ---
 

@@ -68,7 +68,7 @@ async def demo():
  return Response(
  content=view.render(),
  media_type="image/svg+xml",
- headers={"Cache-Control": "no-store, max-age=0"},
+ headers={"Cache-Control": "public, max-age=300"},
  )
 ```
 

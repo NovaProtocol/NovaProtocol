@@ -118,6 +118,6 @@ The profile README (`README.md`) embeds the live badges:
 ![console](https://github.projectnova.download/console.svg)
 ```
 
-Each endpoint returns `image/svg+xml` with `Cache-Control: no-store, max-age=0` so GitHub's camo proxy does not stale-cache the animation. The SVG itself carries SMIL `<animate>` timing, no JavaScript is needed and none runs in the README context.
+Each endpoint returns `image/svg+xml` with `Cache-Control: public, max-age=300` and an `ETag` over the rendered bytes. A cache may store the render, and the `ETag` means a revalidation returns `304` when nothing changed and the new bytes when it did, so a cached badge still updates. The SVG itself carries SMIL `<animate>` timing, no JavaScript is needed and none runs in the README context.
 
 To test locally, open `http://127.0.0.1:8000/test`, it renders the same three objects the profile does, but against your running app.

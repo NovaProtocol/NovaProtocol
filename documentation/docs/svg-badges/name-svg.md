@@ -4,7 +4,7 @@ A compact 8-line badge, a terminal that SSHes in and runs `./introduce_yourself.
 
 ## Route
 
-`GET /name.svg` → `image/svg+xml` with `Cache-Control: no-store, max-age=0` (`apps/routes.py::name_route`).
+`GET /public/name.svg` → `image/svg+xml` with `Cache-Control: public, max-age=300` plus an `ETag` (`apps/routes.py::public_name_route`). The legacy `GET /name.svg` `301`s here.
 
 ## Session
 
@@ -97,7 +97,8 @@ def test_name_svg_route():
  with TestClient(create_app()) as client:
  r = client.get("/name.svg")
  assert r.headers["content-type"].startswith("image/svg+xml")
- assert r.headers["cache-control"] == "no-store, max-age=0"
+ assert r.headers["cache-control"] == "public, max-age=300"
+ assert r.headers["etag"]
  assert b"Khyles" in r.content
 ```
 
