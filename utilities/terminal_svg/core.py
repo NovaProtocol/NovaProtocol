@@ -1,4 +1,4 @@
-"""TerminalSVG — public API for building animated terminal SVGs."""
+"""TerminalSVG, public API for building animated terminal SVGs."""
 
 from __future__ import annotations
 

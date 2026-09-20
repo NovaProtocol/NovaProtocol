@@ -1,4 +1,4 @@
-"""Skills badge — a terminal that runs intro scripts.
+"""Skills badge, a terminal that runs intro scripts.
 
 Each command's output fills the full max_line (20) rows, padded with blank
 lines, and holds for 10s so it can be read before the next command scrolls in.

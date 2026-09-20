@@ -1,6 +1,6 @@
 # Skills Badge (`apps/skills_svg.py`)
 
-A tall 20-line badge — the “career panel” that cycles through four panes via `./get_*.sh` scripts, each full-screen (20 rows) × 10 seconds, padded with blank lines so the next pane scrolls in cleanly.
+A tall 20-line badge, the “career panel” that cycles through four panes via `./get_*.sh` scripts, each full-screen (20 rows) × 10 seconds, padded with blank lines so the next pane scrolls in cleanly.
 
 ## Route
 
@@ -139,21 +139,21 @@ def render_skills_svg() -> str:
 |--------|-------------------|---------|
 | `get_summary.sh` | 7 | DOST scholar, backend, frontend/mobile, devops, networking, embedded, mechanical |
 | `get_tech_stack.sh` | 8 | programming langs, frameworks, DBs, servers, networking, mobile, hardware, mechanical |
-| `get_certification.sh` | 1 | SO2 — DOLE Accredited Safety Officer 2 · BOSH · 2024 |
+| `get_certification.sh` | 1 | SO2, DOLE Accredited Safety Officer 2 · BOSH · 2024 |
 | `get_projects.sh` | 5 | GateKeeper / Portfolio / Water Billing / SolveSpace / NovaProtocol with labels |
 
-Each `output` is exactly `max_line` (20) rows — content + blank `""` padding. Blank output lines still generate a `Row` (empty `<text>`), so the timeline has uniform 20-row panes and the renderer's `y` chain scrolls one full viewport per pane.
+Each `output` is exactly `max_line` (20) rows, content + blank `""` padding. Blank output lines still generate a `Row` (empty `<text>`), so the timeline has uniform 20-row panes and the renderer's `y` chain scrolls one full viewport per pane.
 
 ### Timing
 
-- `custom_start_delay=0.5` — short prompt beat before each script types.
-- `custom_end_delay=10.0` — hold the pane for 10 seconds so the profile viewer can read before the next pane scrolls in. GitHub's camo cache is `no-store`, but the SVG itself still plays for ~40s before settling.
+- `custom_start_delay=0.5`, short prompt beat before each script types.
+- `custom_end_delay=10.0`, hold the pane for 10 seconds so the profile viewer can read before the next pane scrolls in. GitHub's camo cache is `no-store`, but the SVG itself still plays for ~40s before settling.
 
 ### Renderer
 
-`max_line=20` → height `60 + 20*20 + 6 = 466` (viewBox `880×466`) — tallest badge, stands out in the profile's vertical stack.
+`max_line=20` → height `60 + 20*20 + 6 = 466` (viewBox `880×466`), tallest badge, stands out in the profile's vertical stack.
 
-`delay_per_char_input=0.05` — slightly slower than name/console (0.03) because these prompts are read as headings.
+`delay_per_char_input=0.05`, slightly slower than name/console (0.03) because these prompts are read as headings.
 
 ## Preview
 
@@ -180,4 +180,4 @@ When editing pane strings, keep at least one searchable token per pane stable (`
 
 ## Privacy Note
 
-Only public, non-sensitive info — no contact, experience dates, or private URLs. See the module docstring: “Only public, non-sensitive info (no contact/experience details).”
+Only public, non-sensitive info, no contact, experience dates, or private URLs. See the module docstring: “Only public, non-sensitive info (no contact/experience details).”

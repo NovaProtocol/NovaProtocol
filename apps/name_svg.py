@@ -1,6 +1,6 @@
-"""Name badge — a terminal that SSHes in and runs ./introduce_yourself.sh.
+"""Name badge, a terminal that SSHes in and runs ./introduce_yourself.sh.
 
-Same pattern as apps/console_svg.py — builds a TerminalSVG session from a
+Same pattern as apps/console_svg.py, builds a TerminalSVG session from a
 COMMANDS list and returns the SVG string.
 """
 

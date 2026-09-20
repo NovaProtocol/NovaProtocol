@@ -36,7 +36,7 @@ ANSI_FG = {
 }
 ```
 
-Only foreground SGR codes are supported — background SGR (`40`-`47`, `100`-`107`) is not needed for terminal badges. Add entries to `ANSI_FG` if a new color is needed; the renderer already copies `style.fg` verbatim into `fill`.
+Only foreground SGR codes are supported, background SGR (`40`-`47`, `100`-`107`) is not needed for terminal badges. Add entries to `ANSI_FG` if a new color is needed; the renderer already copies `style.fg` verbatim into `fill`.
 
 ## Style
 
@@ -61,7 +61,7 @@ class Segment:
  delay: float = 0.0 # pause (seconds) before this segment's first char
 ```
 
-`delay` is the custom pause escape (`\x1b[<ms>p`) accumulated before the segment — the timeline adds it to `t` before emitting the segment's chars. Example: `"loading\x1b[400p done"` → two segments, second with `delay=0.4`.
+`delay` is the custom pause escape (`\x1b[<ms>p`) accumulated before the segment, the timeline adds it to `t` before emitting the segment's chars. Example: `"loading\x1b[400p done"` → two segments, second with `delay=0.4`.
 
 ## Regexes
 
@@ -87,7 +87,7 @@ Mutates `style` for one SGR code:
 | `39` | `fg=FG` |
 | `30`-`37`, `90`-`97` | `fg=ANSI_FG[code]` |
 
-Unknown codes are ignored — add them to `ANSI_FG` or a new branch if needed. Multi-code SGRs like `\x1b[1;34m` are split on `;` and applied in order.
+Unknown codes are ignored, add them to `ANSI_FG` or a new branch if needed. Multi-code SGRs like `\x1b[1;34m` are split on `;` and applied in order.
 
 ### `parse_ansi(text, base=None) -> list[Segment]`
 
@@ -135,7 +135,7 @@ COMMANDS = [
 ]
 ```
 
-`build_timeline()` calls `parse_ansi(prefix)`, `parse_ansi(cmd)`, and `parse_ansi(out_line)` separately — prefix, input, and each output line get independent style tracks.
+`build_timeline()` calls `parse_ansi(prefix)`, `parse_ansi(cmd)`, and `parse_ansi(out_line)` separately, prefix, input, and each output line get independent style tracks.
 
 ## Testing
 
@@ -153,6 +153,6 @@ def test_parse_ansi_delay_code():
 
 ## Gotchas
 
-- Input is forced white (`Style(fg=FG)`) in `build_timeline()` — what you type should not be pre-colored as if the shell already knew the outcome. Output keeps its parsed colors.
-- The custom `\x1b[<ms>p` is **not** a standard SGR — it is a project-specific pause. It intentionally reuses the CSI prefix so it looks like an ANSI escape in the entry strings but is parsed separately by `_DELAY`.
-- `, ".join` on ANSI_FG keys is not sorted — add new codes alphabetically for readability.
+- Input is forced white (`Style(fg=FG)`) in `build_timeline()`, what you type should not be pre-colored as if the shell already knew the outcome. Output keeps its parsed colors.
+- The custom `\x1b[<ms>p` is **not** a standard SGR, it is a project-specific pause. It intentionally reuses the CSI prefix so it looks like an ANSI escape in the entry strings but is parsed separately by `_DELAY`.
+- `, ".join` on ANSI_FG keys is not sorted, add new codes alphabetically for readability.

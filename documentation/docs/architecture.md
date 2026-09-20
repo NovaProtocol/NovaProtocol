@@ -6,46 +6,46 @@
 |-------|--------|
 | Runtime | Python 3.14-slim, `granian` ASGI (prod), `uvicorn` (dev) |
 | Framework | FastAPI with `create_app()` factory (`apps/__init__.py`), `APIRouter` in `apps/routes.py` |
-| SVG Engine | `utilities/terminal_svg/` — standalone lib (ansi → timeline → render → core) + `svgwrite` |
-| Badge Modules | `apps/name_svg.py`, `apps/console_svg.py`, `apps/skills_svg.py` — data + `render_*_svg()` |
+| SVG Engine | `utilities/terminal_svg/`, standalone lib (ansi → timeline → render → core) + `svgwrite` |
+| Badge Modules | `apps/name_svg.py`, `apps/console_svg.py`, `apps/skills_svg.py`, data + `render_*_svg()` |
 | Content | `data/github_profile.html` (scraped snapshot, not used by `/test`) + live `<object>` gallery in `apps/test_page.py` |
-| Styling | No frontend framework — SVGs are self-contained; `/test` is a minimal HTML shell |
+| Styling | No frontend framework, SVGs are self-contained; `/test` is a minimal HTML shell |
 | Proxy | `caddy:2-alpine` on `:7050`, loopback-only publish via tunnel, **no** `GateKeeper gate` (intentionally public) |
 | Docs | MkDocs Material on `:8005` (`novaprotocol_documentation`), served by FastAPI + granian, **public** at `/documentation/*` |
-| Auth | None — public asset server; image embedders have no cookie jar |
+| Auth | None, public asset server; image embedders have no cookie jar |
 
 ---
 
 ## Monolith Topology
 
-This is a **single-service monolith** (`apps/` factory) — one purpose (serve three SVGs), one deployable. No `shared/` package and no multi-service split.
+This is a **single-service monolith** (`apps/` factory), one purpose (serve three SVGs), one deployable. No `shared/` package and no multi-service split.
 
 ```
 project/
 ├── apps/
 │ ├── __init__.py # create_app() factory, access-log middleware, mounts /static
 │ ├── config.py # pydantic-settings `Settings(BaseSettings)` + `get_config()` lru_cache (only `DEPLOYMENT_TYPE`)
-│ ├── routes.py # APIRouter — GET /, /health, /name.svg, /console.svg, /skills.svg, /test
+│ ├── routes.py # APIRouter, GET /, /health, /name.svg, /console.svg, /skills.svg, /test
 │ ├── name_svg.py # NOVA ASCII art + render_name_svg()
 │ ├── console_svg.py # Full boot/console session + render_console_svg()
 │ ├── skills_svg.py # Summary/tech-stack/cert/projects panes + render_skills_svg()
-│ └── test_page.py # /test live gallery — embeds the three SVGs via <object>
+│ └── test_page.py # /test live gallery, embeds the three SVGs via <object>
 ├── utilities/
-│ └── terminal_svg/ # Standalone reusable lib — no imports from apps/
+│ └── terminal_svg/ # Standalone reusable lib, no imports from apps/
 │ ├── __init__.py # Re-exports TerminalSVG, Style, parse_ansi, palette
 │ ├── ansi.py # SGR parsing + palette + Style/Segment
-│ ├── timeline.py # build_timeline() — per-char begin times
-│ ├── render.py # render_svg() — svgwrite + SMIL <animate>
-│ ├── core.py # TerminalSVG facade — entries → timeline → SVG
-│ └── __main__.py # Demo — write + open a temp SVG
+│ ├── timeline.py # build_timeline(), per-char begin times
+│ ├── render.py # render_svg(), svgwrite + SMIL <animate>
+│ ├── core.py # TerminalSVG facade, entries → timeline → SVG
+│ └── __main__.py # Demo, write + open a temp SVG
 ├── data/
-│ └── github_profile.html # Ignored snapshot (gitignored) — not served
+│ └── github_profile.html # Ignored snapshot (gitignored), not served
 ├── static/.gitkeep # Mounted at /static (empty, reserved)
-├── templates/ # (none — SVGs are code-generated, /test is inline HTML)
+├── templates/ # (none, SVGs are code-generated, /test is inline HTML)
 ├── caddy/Caddyfile + Dockerfile
 ├── documentation/ # MkDocs site (this site)
-├── wsgi.py # granian target wsgi:app — app = create_app()
-├── run.py # uvicorn dev entrypoint — --mode debug|production
+├── wsgi.py # granian target wsgi:app, app = create_app()
+├── run.py # uvicorn dev entrypoint, --mode debug|production
 ├── Dockerfile # python:3.14-slim, fonts-dejavu-core, appuser uid 10001, granian on 8000
 └── compose.yaml # app + caddy + documentation
 ```
@@ -84,22 +84,22 @@ def get_config() -> Settings:
  return Settings()
 ```
 
-No secrets — only `DEPLOYMENT_TYPE` (live `NovaProtocol/apps/config.py`). No `load_dotenv`.
+No secrets, only `DEPLOYMENT_TYPE` (live `NovaProtocol/apps/config.py`). No `load_dotenv`.
 
 ### Routing
 
-One `APIRouter` in `apps/routes.py` — five routes plus `/test`:
+One `APIRouter` in `apps/routes.py`, five routes plus `/test`:
 
 ```python
 @router.get("/") # -> {"service": "NovaProtocol Assets", "status": "ok"}
-@router.get("/health") # -> {"status": "ok"} — compose + Caddy probe
+@router.get("/health") # -> {"status": "ok"}, compose + Caddy probe
 @router.get("/name.svg") # -> image/svg+xml, no-store
 @router.get("/console.svg")
 @router.get("/skills.svg")
 @router.get("/test") # -> text/html gallery (apps/test_page.py)
 ```
 
-SVG routes return `Response(content=render_*_svg(), media_type="image/svg+xml", headers=_NO_CACHE)` where `_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}`. The gallery at `/test` returns `HTMLResponse(test_page.render_test_page())` — it builds a self-contained HTML doc embedding the three live SVGs via `<object data="/name.svg">` so SMIL animations run.
+SVG routes return `Response(content=render_*_svg(), media_type="image/svg+xml", headers=_NO_CACHE)` where `_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}`. The gallery at `/test` returns `HTMLResponse(test_page.render_test_page())`, it builds a self-contained HTML doc embedding the three live SVGs via `<object data="/name.svg">` so SMIL animations run.
 
 ---
 
@@ -136,8 +136,8 @@ graph TB
 
 - Caddy listens on `:7050` (`Caddyfile` site address `:7050`), matching `compose.yaml` `127.0.0.1:7050:7050` and the app's `EXPOSE 8000`.
 - `handle /health { reverse_proxy novaprotocol_main:8000 }` bypasses everything (tunnel and compose probes). No `GateKeeper gate`.
-- `handle_path /documentation/* { reverse_proxy novaprotocol_documentation:8005 }` — **public**, prefix-stripped (`handle_path`). Serves the prebuilt MkDocs `site/` via FastAPI on `:8005`.
-- `handle { reverse_proxy novaprotocol_main:8000 }` — everything else public (the three SVGs and `/test`).
+- `handle_path /documentation/* { reverse_proxy novaprotocol_documentation:8005 }`, **public**, prefix-stripped (`handle_path`). Serves the prebuilt MkDocs `site/` via FastAPI on `:8005`.
+- `handle { reverse_proxy novaprotocol_main:8000 }`, everything else public (the three SVGs and `/test`).
 - Proxy targets use `container_name` (`novaprotocol_main`, `novaprotocol_documentation`), never the generic service name `app`, to avoid the shared-network DNS collision where every `app` alias on `cloudflared-tunnel` would resolve together (see `reference/docker/compose.md` → Shared-network DNS gotcha).
 - Compose: app and docs on `default`; caddy on `default` (external). Caddy publishes `127.0.0.1:7050:7050` loopback-only.
 - Healthchecks: `python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:<port>/health')"` with 30s interval, 5s timeout, 3 retries.
@@ -149,9 +149,9 @@ graph TB
 
 ## Testing
 
-- `tests/test_routes.py` — health and SVG routes via `TestClient(create_app())` (health JSON, content-type, cache-control, presence checks for "Khyles", "nova@ProjectNova", "Python").
-- `tests/test_terminal_svg.py` — `parse_ansi` (color, bold/underline, reset, delay escape), `TerminalSVG` rendering (tspan/animate/scroll, prefix, timing).
-- `tests/test_console_svg.py`, `tests/test_name_svg.py` — badge smoke checks.
+- `tests/test_routes.py`, health and SVG routes via `TestClient(create_app())` (health JSON, content-type, cache-control, presence checks for "Khyles", "nova@ProjectNova", "Python").
+- `tests/test_terminal_svg.py`, `parse_ansi` (color, bold/underline, reset, delay escape), `TerminalSVG` rendering (tspan/animate/scroll, prefix, timing).
+- `tests/test_console_svg.py`, `tests/test_name_svg.py`, badge smoke checks.
 
 Run: `pytest -q` or `pre-commit run --all`.
 

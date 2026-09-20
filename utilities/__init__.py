@@ -1,4 +1,4 @@
-"""utilities — standalone libraries independent of the FastAPI app."""
+"""utilities, standalone libraries independent of the FastAPI app."""
 
 from __future__ import annotations
 

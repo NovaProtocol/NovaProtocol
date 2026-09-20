@@ -1,5 +1,5 @@
 site_name: NovaProtocol · Documentation
-site_description: Documentation for NovaProtocol — public FastAPI asset server that renders animated terminal SVGs for the GitHub profile
+site_description: Documentation for NovaProtocol, public FastAPI asset server that renders animated terminal SVGs for the GitHub profile
 site_author: NovaProtocol
 repo_url: https://github.com/NovaProtocol/NovaProtocol
 repo_name: NovaProtocol/NovaProtocol
@@ -74,5 +74,6 @@ nav:
       - Name Badge: svg-badges/name-svg.md
       - Console Badge: svg-badges/console-svg.md
       - Skills Badge: svg-badges/skills-svg.md
+      - Project Badges: svg-badges/project-badges.md
   - API Reference: api-reference.md
   - Docker & Deployment: docker.md

@@ -1,4 +1,4 @@
-"""Timeline — turns entries into per-character events with begin times."""
+"""Timeline, turns entries into per-character events with begin times."""
 
 from __future__ import annotations
 
@@ -65,7 +65,7 @@ def build_timeline(
         # start_delay: the prompt is already shown, we "think" before typing.
         t += start_delay
 
-        # input types char by char (always white — what you type shouldn't be
+        # input types char by char (always white, what you type shouldn't be
         # pre-colored as if the shell already knew the outcome)
         for seg in parse_ansi(cmd):
             t += seg.delay
@@ -90,7 +90,7 @@ def build_timeline(
             rows.append(Row(chars=ochars, begin=orow_begin, kind="output"))
 
         # end_delay + entry_delay land AFTER the whole entry (outputs included),
-        # so the next command waits — like the shell sitting at the prompt.
+        # so the next command waits, like the shell sitting at the prompt.
         t += end_delay + entry_delay
 
     total = t + 1.0  # small settle at the end

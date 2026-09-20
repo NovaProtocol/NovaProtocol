@@ -2,7 +2,7 @@
 
 ## Compose
 
-`compose.yaml` — three services: `app` + `documentation` + `caddy`. Single `default` network + the shared tunnel external network.
+`compose.yaml`, three services: `app` + `documentation` + `caddy`. Single `default` network + the shared tunnel external network.
 
 ```yaml
 services:
@@ -71,7 +71,7 @@ networks:
 | `documentation` | `novaprotocol_documentation` | MkDocs FastAPI on `8005` |
 | `caddy` | `novaprotocol_caddy` | Caddy on `7050` |
 
-Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app` — avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel` / `gatekeeper` would resolve together (see `reference/docker/compose.md`).
+Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app`, avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel` / `gatekeeper` would resolve together (see `reference/docker/compose.md`).
 
 ### Environment
 
@@ -82,13 +82,13 @@ export DEPLOYMENT_TYPE=production
 docker compose up -d --build
 ```
 
-No `.env` file, no `env_file:`, no secrets — the monolith has no DB or token (see `.env.example`).
+No `.env` file, no `env_file:`, no secrets, the monolith has no DB or token (see `.env.example`).
 
 ### Healthchecks
 
-- Both app and docs use the Python stdlib `urllib.request` probe — no `curl`/`wget` in the image.
+- Both app and docs use the Python stdlib `urllib.request` probe, no `curl`/`wget` in the image.
 - `start_period: 10s` lets granian bind before the first probe.
-- Caddy's `/health` is not healthchecked as a container — it is a forward to the app; tunnel checks hit it directly.
+- Caddy's `/health` is not healthchecked as a container, it is a forward to the app; tunnel checks hit it directly.
 
 Verify:
 
@@ -105,7 +105,7 @@ curl -s http://127.0.0.1:7050/documentation/ | head # docs via Caddy (public)
 
 ## Dockerfiles
 
-### App (`Dockerfile`) — `python:3.14-slim`, `appuser` uid `10001`
+### App (`Dockerfile`): `python:3.14-slim`, `appuser` uid `10001`
 
 ```dockerfile
 FROM python:3.14-slim AS base
@@ -135,10 +135,10 @@ CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "8000", "-
 - `fonts-dejavu-core` ensures `DejaVu Sans Mono` metrics for badge layout.
 - `requirements.txt` is copied and pip-installed **before** `COPY . .` so Docker caches the pip layer.
 - `python -m compileall` catches syntax errors at build time.
-- Non-root `USER appuser` (uid `10001`) — `docker run --rm novaprotocol_main whoami` → `appuser`.
+- Non-root `USER appuser` (uid `10001`), `docker run --rm novaprotocol_main whoami` → `appuser`.
 - `EXPOSE 8000` matches compose/Caddy; `CMD` is exec-form granian ASGI with the `wsgi:app` target.
 
-### Documentation (`documentation/Dockerfile`) — same shape, `mkdocs build`
+### Documentation (`documentation/Dockerfile`): same shape, `mkdocs build`
 
 ```dockerfile
 FROM python:3.14-slim
@@ -165,8 +165,8 @@ USER appuser
 CMD ["granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "8005", "--workers", "1", "app:app"]
 ```
 
-- `mkdocs build` runs at image-build time — `site/` is baked in; the container just serves it.
-- No fonts needed — docs are HTML, not SVG rendering.
+- `mkdocs build` runs at image-build time, `site/` is baked in; the container just serves it.
+- No fonts needed, docs are HTML, not SVG rendering.
 - Same `EXPOSE`, non-root, and granian ASGI pattern as the app.
 
 ### Caddy (`caddy/Dockerfile`)
@@ -181,7 +181,7 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 ## Caddy
 
-`caddy/Caddyfile` — single port `:7050`, loopback-only `127.0.0.1:7050:7050`, **public** via GateKeeper `none`-rules (zero per-app gate in the Caddyfile).
+`caddy/Caddyfile`, single port `:7050`, loopback-only `127.0.0.1:7050:7050`, **public** via GateKeeper `none`-rules (zero per-app gate in the Caddyfile).
 
 ```caddy
 :7050 {
@@ -203,14 +203,14 @@ COPY Caddyfile /etc/caddy/Caddyfile
 
 | Path | Caddy directive | Target | Auth |
 |------|-----------------|--------|------|
-| `/health` | `handle /health` | `novaprotocol_main:8000` | public — tunnel + compose probe |
-| `/documentation/*` | `handle_path /documentation/*` | `novaprotocol_documentation:8005` | **public** — prefix-stripped |
+| `/health` | `handle /health` | `novaprotocol_main:8000` | public, tunnel + compose probe |
+| `/documentation/*` | `handle_path /documentation/*` | `novaprotocol_documentation:8005` | **public**: prefix-stripped |
 | all else (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) | `handle` catch-all | `novaprotocol_main:8000` | **public** |
 
-`handle_path` strips the prefix before proxying — the docs app sees `/` for `GET /documentation/` and `/getting-started/` for `GET /documentation/getting-started/`.
+`handle_path` strips the prefix before proxying, the docs app sees `/` for `GET /documentation/` and `/getting-started/` for `GET /documentation/getting-started/`.
 
 !!! note "Intentionally public via GateKeeper rules"
- Unlike Buddys/Portfolio/SolveSpace/WBS, NovaProtocol's routes use GateKeeper `none`-rule decisions instead of access-code gating — the assets are GitHub profile embeds fetched by camo without cookies, so a login redirect would break the image. The caddy still joins the GateKeeper-owned `gatekeeper` network (live `NovaProtocol/compose.yaml`: caddy on `default` + `gatekeeper`) — public-ness lives in GateKeeper rules, not in network membership. Documentation follows the same rule — `/documentation/*` is public. This is the declared exception to the default gate-everything rule.
+ Unlike Buddys/Portfolio/SolveSpace/WBS, NovaProtocol's routes use GateKeeper `none`-rule decisions instead of access-code gating, the assets are GitHub profile embeds fetched by camo without cookies, so a login redirect would break the image. The caddy still joins the GateKeeper-owned `gatekeeper` network (live `NovaProtocol/compose.yaml`: caddy on `default` + `gatekeeper`), public-ness lives in GateKeeper rules, not in network membership. Documentation follows the same rule, `/documentation/*` is public. This is the declared exception to the default gate-everything rule.
 
 ### Verify Caddy
 
@@ -226,19 +226,19 @@ curl -s http://127.0.0.1:7050/documentation/ | grep -i "NovaProtocol"
 
 ## Networks
 
-- `default` — bridge, intra-project traffic (Caddy ↔ app, Caddy ↔ docs).
-- `gatekeeper` — external (`name: gatekeeper`, GateKeeper-owned); caddy joins it so GateKeeper can route here. Public-ness comes from `none`-rules, not from leaving the network (live `NovaProtocol/compose.yaml`).
+- `default`, bridge, intra-project traffic (Caddy ↔ app, Caddy ↔ docs).
+- `gatekeeper`, external (`name: gatekeeper`, GateKeeper-owned); caddy joins it so GateKeeper can route here. Public-ness comes from `none`-rules, not from leaving the network (live `NovaProtocol/compose.yaml`).
 
-TLS is terminated at the tunnel edge (Cloudflare) via `gatekeeper_caddy:7000` (sole tunnel ingress) — this Caddy is plain HTTP on `:7050`, reachable publicly only through GateKeeper routes.
+TLS is terminated at the tunnel edge (Cloudflare) via `gatekeeper_caddy:7000` (sole tunnel ingress), this Caddy is plain HTTP on `:7050`, reachable publicly only through GateKeeper routes.
 
 ---
 
 ## Deployment Model
 
-- **Remote** (`ssh agent-access`, `scripts/docker.sh` wrapper) — local `docker ps` shows dev containers like `dockhand`, not production `novaprotocol_main`. Never `docker compose` against the remote without owner approval.
-- The deployed `compose.yaml` lives on the Dokhand host under `/app/data/stacks/…` — not necessarily the repo copy.
-- Owner deploys — changes are committed here first; the owner copies `compose.yaml`/`Caddyfile` into Dokhand and recreates.
-- No volumes — the app is stateless (no DB, no uploads); docs `site/` is baked into the image.
+- **Remote** (`ssh agent-access`, `scripts/docker.sh` wrapper), local `docker ps` shows dev containers like `dockhand`, not production `novaprotocol_main`. Never `docker compose` against the remote without owner approval.
+- The deployed `compose.yaml` lives on the Dokhand host under `/app/data/stacks/…`, not necessarily the repo copy.
+- Owner deploys, changes are committed here first; the owner copies `compose.yaml`/`Caddyfile` into Dokhand and recreates.
+- No volumes, the app is stateless (no DB, no uploads); docs `site/` is baked into the image.
 - Restart policy: `restart: unless-stopped` on every service.
 
 ---
@@ -249,9 +249,9 @@ House rule: ports allotted in groups of **10**. NovaProtocol owns the `7050`s:
 
 | Port | Use |
 |------|-----|
-| `7050` | Caddy `http` — `127.0.0.1:7050:7050` (via `cloudflared tunnel` → `github.projectnova.download`) |
-| `8000` | App granian ASGI — `novaprotocol_main:8000` (`uvicorn` on `8000` in dev via `run.py`) |
-| `8005` | Documentation granian ASGI — `novaprotocol_documentation:8005` (`expose:` only, via Caddy `/documentation/*`) |
+| `7050` | Caddy `http`, `127.0.0.1:7050:7050` (via `cloudflared tunnel` → `github.projectnova.download`) |
+| `8000` | App granian ASGI, `novaprotocol_main:8000` (`uvicorn` on `8000` in dev via `run.py`) |
+| `8005` | Documentation granian ASGI, `novaprotocol_documentation:8005` (`expose:` only, via Caddy `/documentation/*`) |
 
 Verify: `docker compose ps` must show `127.0.0.1:7050->7050/tcp`, not `0.0.0.0`.
 

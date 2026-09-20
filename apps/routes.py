@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
-from apps import console_svg, name_svg, skills_svg
+from apps import console_svg, name_svg, project_svg, skills_svg
 
 router = APIRouter()
 
@@ -35,6 +35,10 @@ async def skills_route():
     return RedirectResponse(url="/public/skills.svg", status_code=301)
 
 
+@router.get("/projects/{slug}.svg", include_in_schema=False)
+async def project_route(slug: str):
+    return RedirectResponse(url=f"/public/projects/{slug}.svg", status_code=301)
+
 @router.get("/public/name.svg")
 async def public_name_route():
     return Response(
@@ -62,18 +66,44 @@ async def public_skills_route():
     )
 
 
+@router.get("/public/projects/{slug}.svg")
+async def public_project_route(slug: str):
+    try:
+        content = project_svg.render_project_badge(slug)
+    except KeyError:
+        return Response(
+            content=f"no badge for {slug!r}",
+            media_type="text/plain",
+            status_code=404,
+        )
+    return Response(
+        content=content,
+        media_type="image/svg+xml",
+        headers=_NO_CACHE,
+    )
+
 @router.get("/public")
 async def public_index():
-    return HTMLResponse(
-        "<html><head><title>Public assets</title></head><body style='font-family:monospace;padding:2rem'>"
+    badges = "".join(
+        f"<li><a href='/public/projects/{slug}.svg'>/public/projects/{slug}.svg</a></li>"
+        for slug in project_svg.slugs()
+    )
+    body = (
+        "<html><head><title>Public assets</title></head>"
+        "<body style='font-family:monospace;padding:2rem'>"
         "<h1>Public assets</h1><ul>"
         "<li><a href='/public/name.svg'>/public/name.svg</a></li>"
         "<li><a href='/public/skills.svg'>/public/skills.svg</a></li>"
         "<li><a href='/public/console.svg'>/public/console.svg</a></li>"
-        "</ul><p>Canonical prefix is <code>https://github.projectnova.download/public/*.svg</code> for GitHub embeds. Legacy <code>/name.svg</code> etc. 301 to <code>/public/*.svg</code>.</p>"
+        f"{badges}"
+        "</ul>"
+        "<p>Canonical prefix is "
+        "<code>https://github.projectnova.download/public/*.svg</code> for GitHub "
+        "embeds. Legacy <code>/name.svg</code> etc. 301 to <code>/public/*.svg</code>."
+        "</p>"
         "<script src='/static/js/error.js'></script></body></html>"
     )
-
+    return HTMLResponse(body)
 
 @router.get("/test")
 async def test_preview():

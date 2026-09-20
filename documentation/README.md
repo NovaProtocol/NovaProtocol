@@ -9,7 +9,7 @@ Full project documentation for **NovaProtocol**, built with [MkDocs](https://www
 | [Home](./docs/index.md) | Overview and service map |
 | [Getting Started](./docs/getting-started.md) | Prerequisites and local startup |
 | [Architecture](./docs/architecture.md) | Monolith topology, factory, routing, data |
-| [Terminal SVG](./docs/terminal-svg/index.md) | Animated terminal library — ANSI, timeline, rendering |
+| [Terminal SVG](./docs/terminal-svg/index.md) | Animated terminal library, ANSI, timeline, rendering |
 | [SVG Badges](./docs/svg-badges/index.md) | name.svg / console.svg / skills.svg generation |
 | [API Reference](./docs/api-reference.md) | HTTP routes and SVG endpoints |
 | [Docker](./docs/docker.md) | Compose, Caddy, and deployment |

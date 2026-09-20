@@ -1,4 +1,4 @@
-"""ANSI SGR parsing — converts escape-coded text into styled segments.
+"""ANSI SGR parsing, converts escape-coded text into styled segments.
 
 Supports colors, bold/italic/underline, reset, and a custom delay escape
 (``\\x1b[<ms>p``) that pauses the timeline at that point.
