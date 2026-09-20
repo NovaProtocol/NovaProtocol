@@ -1,6 +1,6 @@
 # NovaProtocol
 
-Public **FastAPI asset server** that renders the three animated terminal SVGs embedded in the [NovaProtocol GitHub profile](https://github.com/NovaProtocol) — `name.svg`, `console.svg`, and `skills.svg`. Served as a monolith behind Caddy on `:7050` (app on `:8000`) and intentionally **ungated** (no GateKeeper), because image embedders have no cookie jar.
+Public **FastAPI asset server** that renders the three animated terminal SVGs embedded in the [NovaProtocol GitHub profile](https://github.com/NovaProtocol), `name.svg`, `console.svg`, and `skills.svg`. Served as a monolith behind Caddy on `:7050` (app on `:8000`) and intentionally **ungated** (no GateKeeper), because image embedders have no cookie jar.
 
 **Stack:** Python 3.14 · FastAPI + granian (ASGI) · `utilities/terminal_svg` (custom ANSI → SMIL SVG library) · `svgwrite` · Caddy 2 (Alpine) · MkDocs Material.
 
@@ -8,13 +8,13 @@ Public **FastAPI asset server** that renders the three animated terminal SVGs em
 
 | Service | Container | Internal Port | Caddy Route | Network |
 |---------|-----------|---------------|-------------|---------|
-| **Caddy** | `novaprotocol_caddy` | `:7050` | — | `default`, `gatekeeper` |
+| **Caddy** | `novaprotocol_caddy` | `:7050` | n/a | `default`, `gatekeeper` |
 | **App (monolith)** | `novaprotocol_main` | `:8000` | `/*` via `novaprotocol_main:8000` | `default` |
 | **Documentation** | `novaprotocol_documentation` | `:8005` | `/documentation/*` via `novaprotocol_documentation:8005` | `default` |
 
-- `GET /health` bypasses everything — tunnel and compose healthchecks.
-- `GET /documentation/*` is **public** (no `GateKeeper gate`) — docs are safe to embed and cache like the SVGs.
-- All other routes (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) are public by design — no auth gate.
+- `GET /health` bypasses everything, tunnel and compose healthchecks.
+- `GET /documentation/*` is **public** (no `GateKeeper gate`), docs are safe to embed and cache like the SVGs.
+- All other routes (`/`, `/name.svg`, `/console.svg`, `/skills.svg`, `/test`) are public by design, no auth gate.
 
 ```mermaid
 graph TB
@@ -29,16 +29,16 @@ graph TB
 
 ## Quick Links
 
-- [Getting Started](getting-started.md) — run locally and in Docker.
-- [Architecture](architecture.md) — layout, factory, and routing.
-- [Terminal SVG](terminal-svg/index.md) — the `utilities/terminal_svg` engine.
-- [SVG Badges](svg-badges/index.md) — how the three badges are built.
-- [API Reference](api-reference.md) — HTTP routes, caching headers, and content types.
-- [Docker & Deployment](docker.md) — compose, Caddy, and prod notes.
+- [Getting Started](getting-started.md), run locally and in Docker.
+- [Architecture](architecture.md), layout, factory, and routing.
+- [Terminal SVG](terminal-svg/index.md), the `utilities/terminal_svg` engine.
+- [SVG Badges](svg-badges/index.md), how the three badges are built.
+- [API Reference](api-reference.md), HTTP routes, caching headers, and content types.
+- [Docker & Deployment](docker.md), compose, Caddy, and prod notes.
 
 ## Conventions
 
-The layout is a monolith: an `apps/` factory, standalone tooling under `utilities/`, and static HTML under `data/`. Images build from `python:3.14-slim`, serve with `granian` in exec form, run as a non-root `appuser` (uid `10001`), and publish on loopback only. Caddy proxies every path straight through — the app and this documentation are public, with no gate in front of either. Documentation is built with MkDocs Material from `documentation/`, served on `8005`, and reached through `handle_path /documentation/*`.
+The layout is a monolith: an `apps/` factory, standalone tooling under `utilities/`, and static HTML under `data/`. Images build from `python:3.14-slim`, serve with `granian` in exec form, run as a non-root `appuser` (uid `10001`), and publish on loopback only. Caddy proxies every path straight through, the app and this documentation are public, with no gate in front of either. Documentation is built with MkDocs Material from `documentation/`, served on `8005`, and reached through `handle_path /documentation/*`.
 
-??? note "Intentionally public — no GateKeeper"
- Unlike Buddy's, Portfolio, SolveSpace, and WBS, NovaProtocol is **not** gated. The SVGs are `<img src="https://github.projectnova.download/name.svg">` embeds in a GitHub profile README. GitHub's image proxy and browsers fetch without cookies — `GateKeeper gate` would `302` to login and the image would break. The Caddyfile therefore has no `GateKeeper gate` block at all, and `compose.yaml` does not join `gatekeeper`. Documentation follows the same rule — `/documentation/*` is public — because the project's assets are public.
+??? note "Intentionally public, no GateKeeper"
+ Unlike Buddy's, Portfolio, SolveSpace, and WBS, NovaProtocol is **not** gated. The SVGs are `<img src="https://github.projectnova.download/name.svg">` embeds in a GitHub profile README. GitHub's image proxy and browsers fetch without cookies, `GateKeeper gate` would `302` to login and the image would break. The Caddyfile therefore has no `GateKeeper gate` block at all, and `compose.yaml` does not join `gatekeeper`. Documentation follows the same rule, `/documentation/*` is public, because the project's assets are public.

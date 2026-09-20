@@ -1,4 +1,4 @@
-"""Renderer — emits the SVG from a timeline.
+"""Renderer, emits the SVG from a timeline.
 
 Two animation modes:
 

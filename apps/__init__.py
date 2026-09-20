@@ -77,7 +77,7 @@ def create_app() -> FastAPI:
 
     app.include_router(router)
 
-    # error handlers need templates — use app's Jinja2Templates from routes if available, else create
+    # error handlers need templates, use app's Jinja2Templates from routes if available, else create
     try:
         from pathlib import Path as _P
         from fastapi.templating import Jinja2Templates

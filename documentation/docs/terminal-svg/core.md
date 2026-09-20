@@ -1,6 +1,6 @@
 # Core API (`utilities/terminal_svg/core.py`)
 
-The public facade — what badge modules and `__main__.py` actually import.
+The public facade, what badge modules and `__main__.py` actually import.
 
 ## Class `TerminalSVG`
 
@@ -23,7 +23,7 @@ view = TerminalSVG(max_line: int = 14) -> None
 | `delay_after_entry` | `float` | `0.0` | Wait after command+output before next entry. Per-entry `custom_end_delay` overrides. |
 | `width` | `int` | `880` | SVG viewBox width. Override per-render with `render(width=…)`. |
 | `loop` | `bool` | `False` | SMIL looping mode (see [Rendering](render.md)). |
-| `_entries` | `list[dict]` | `[]` | Session script — mutated only via `add_line()` / `clear()`. |
+| `_entries` | `list[dict]` | `[]` | Session script, mutated only via `add_line()` / `clear()`. |
 
 ### Methods
 
@@ -42,7 +42,7 @@ Append a session entry. Shape:
 }
 ```
 
-Only `input` and `output` are required — others default to the view's fields. `input` and each `output` line may contain ANSI escapes (`\x1b[32m`, `\x1b[90m`, …) and the custom pause `\x1b[<ms>p`.
+Only `input` and `output` are required, others default to the view's fields. `input` and each `output` line may contain ANSI escapes (`\x1b[32m`, `\x1b[90m`, …) and the custom pause `\x1b[<ms>p`.
 
 ```python
 view.add_line({"input": "whoami", "output": ["nova"]})
@@ -160,7 +160,7 @@ def render_skills_svg() -> str:
  return view.render()
 ```
 
-Only `max_line` and `delay_per_char_input` vary meaningfully — console and name share `8` (compact badge), skills uses `20` (tall cards with blank padding).
+Only `max_line` and `delay_per_char_input` vary meaningfully, console and name share `8` (compact badge), skills uses `20` (tall cards with blank padding).
 
 ## `__all__`
 
@@ -216,7 +216,7 @@ Badge smoke tests call `render_*_svg()` directly (`tests/test_name_svg.py`, `tes
 
 ## Gotchas
 
-- `command_prefix` is parsed as ANSI — if you embed `\x1b[32m` in it, the prompt itself is colored. Badge modules set it to `f"{GREEN}nova@…:{BLUE}~{RESET}$ "` so the user/host is green, tilde is blue.
-- `delay_per_char_input` is per **displayed** char after ANSI stripping — a long escape like `\x1b[34m` adds `delay` via its `Segment.delay` but no typing delay.
+- `command_prefix` is parsed as ANSI, if you embed `\x1b[32m` in it, the prompt itself is colored. Badge modules set it to `f"{GREEN}nova@…:{BLUE}~{RESET}$ "` so the user/host is green, tilde is blue.
+- `delay_per_char_input` is per **displayed** char after ANSI stripping, a long escape like `\x1b[34m` adds `delay` via its `Segment.delay` but no typing delay.
 - `width` on the view is the default; `render(width=…)` is a per-call override that does not mutate `self.width`. Useful for tests (`render(width=600)`).
-- `loop` is a field, not a `render()` arg — set `view.loop = True` before `render()`.
+- `loop` is a field, not a `render()` arg, set `view.loop = True` before `render()`.

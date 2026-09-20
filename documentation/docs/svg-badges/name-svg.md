@@ -1,6 +1,6 @@
 # Name Badge (`apps/name_svg.py`)
 
-A compact 8-line badge — a terminal that SSHes in and runs `./introduce_yourself.sh`, showing green NOVA block art plus name and GitHub link.
+A compact 8-line badge, a terminal that SSHes in and runs `./introduce_yourself.sh`, showing green NOVA block art plus name and GitHub link.
 
 ## Route
 
@@ -56,16 +56,16 @@ def render_name_svg() -> str:
  return view.render()
 ```
 
-- `max_line=8` — compact badge height `60 + 8*20 + 6 = 226` (viewBox `880×226`).
+- `max_line=8`, compact badge height `60 + 8*20 + 6 = 226` (viewBox `880×226`).
 - `custom_prefix` on the first two entries fakes a Windows PowerShell → Linux password transition before the familiar `nova@ProjectNova:~$` prompt.
-- `NOVA_ART` is 6 lines of `██` block art (46 chars/line) colored green via `\x1b[32m` — spacing assumes monospace `DejaVu Sans Mono`.
+- `NOVA_ART` is 6 lines of `██` block art (46 chars/line) colored green via `\x1b[32m`, spacing assumes monospace `DejaVu Sans Mono`.
 - The link `> https://github.com/NovaProtocol` is blue (`\x1b[34m`) so it reads as a hyperlink even inside the terminal.
 
 ## Timing
 
 - `ssh` input types at 30ms/char, 1s start delay (prompt shows), 1.5s end delay (auth "thinking").
 - Password dots (`************`) same, 2.5s end delay (feels like server response).
-- `./introduce_yourself.sh` at 30ms/char, 0.5s start delay — then 6 green art lines + 2 text lines appear (output bursts at ~1ms/char).
+- `./introduce_yourself.sh` at 30ms/char, 0.5s start delay, then 6 green art lines + 2 text lines appear (output bursts at ~1ms/char).
 
 Total wall-clock ≈ `ssh` typing + 1.5s + password typing + 2.5s + script typing + art/burst.
 

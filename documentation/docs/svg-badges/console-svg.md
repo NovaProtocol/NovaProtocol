@@ -1,6 +1,6 @@
 # Console Badge (`apps/console_svg.py`)
 
-An 8-line “bring-up” badge — a fresh Linux boot, then the pre-prod `docker compose up` of this exact host (FastAPI + Caddy + Cloudflare Tunnel serving `github.projectnova.download`). The longest session; scrolls rapidly.
+An 8-line “bring-up” badge, a fresh Linux boot, then the pre-prod `docker compose up` of this exact host (FastAPI + Caddy + Cloudflare Tunnel serving `github.projectnova.download`). The longest session; scrolls rapidly.
 
 ## Route
 
@@ -9,7 +9,7 @@ An 8-line “bring-up” badge — a fresh Linux boot, then the pre-prod `docker
 ## Session Highlights
 
 ```python
-# apps/console_svg.py — COMMANDS: list[dict] (abridged)
+# apps/console_svg.py: COMMANDS: list[dict] (abridged)
 
 COMMANDS = [
  # SSH in (same PowerShell → password open as name.svg/cl skills)
@@ -49,8 +49,8 @@ COMMANDS = [
 
 Key narrative beats:
 
-- **Intentional typo** `docker compose uo -d` → `bash: uo: command not found` — drives the rendered error; the next line is the correction `up -d`.
-- **Phase contrast** — `compose ps` before shows `created` vs after shows `Up 2 seconds`.
+- **Intentional typo** `docker compose uo -d` → `bash: uo: command not found`, drives the rendered error; the next line is the correction `up -d`.
+- **Phase contrast**: `compose ps` before shows `created` vs after shows `Up 2 seconds`.
 - **Granian logs** + **Caddy logs** + two `curl /health` (localhost vs tunnel) prove the whole chain.
 
 ## Renderer
@@ -69,14 +69,14 @@ def render_console_svg(max_line: int = 8) -> str:
  return view.render()
 ```
 
-- `max_line=8` — same compact height as name badge (`226px`), so all three badges align in the profile grid.
-- `delay_per_line_input=1` — prompt shows for a second before typing (breathing room between rapid commands).
-- `delay_per_line_output=0.05` + `delay_after_entry=0.05` — output bursts but each line and each entry gets a 50ms beat so the scroll is readable.
+- `max_line=8`, same compact height as name badge (`226px`), so all three badges align in the profile grid.
+- `delay_per_line_input=1`, prompt shows for a second before typing (breathing room between rapid commands).
+- `delay_per_line_output=0.05` + `delay_after_entry=0.05`, output bursts but each line and each entry gets a 50ms beat so the scroll is readable.
 - `max_line` is a param (default `8`) so tests can render with a different viewport if needed.
 
 ## Scrolling
 
-`COMMANDS` yields far more than 8 `Row`s (every input + every output line). Overflow `begin` times trigger the renderer's `y` chain — with ~20 distinct rows, about 12 scroll jumps, each 20px, so the badge scrolls almost continuously. The viewer sees the last 8 rows settle (logs + health).
+`COMMANDS` yields far more than 8 `Row`s (every input + every output line). Overflow `begin` times trigger the renderer's `y` chain, with ~20 distinct rows, about 12 scroll jumps, each 20px, so the badge scrolls almost continuously. The viewer sees the last 8 rows settle (logs + health).
 
 ## Tests
 
@@ -99,4 +99,4 @@ def test_console_svg_route():
  assert b"nova@ProjectNova" in r.content
 ```
 
-When editing output strings, keep ANSI coloring consistent — `BLUE` headers, `GREEN` success, `RED` error, `GRAY` logs — so the profile render stays themed.
+When editing output strings, keep ANSI coloring consistent, `BLUE` headers, `GREEN` success, `RED` error, `GRAY` logs, so the profile render stays themed.
