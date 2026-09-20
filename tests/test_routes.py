@@ -15,7 +15,7 @@ def test_name_svg_route():
         r = client.get("/public/name.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
-        assert r.headers["cache-control"] == "no-store, max-age=0"
+        assert r.headers["cache-control"] == "public, max-age=300"
         assert b"Khyles" in r.content
 
 
@@ -24,7 +24,7 @@ def test_console_svg_route():
         r = client.get("/public/console.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
-        assert r.headers["cache-control"] == "no-store, max-age=0"
+        assert r.headers["cache-control"] == "public, max-age=300"
         assert b"nova@ProjectNova" in r.content  # chrome title bar
 
 
@@ -33,7 +33,7 @@ def test_skills_svg_route():
         r = client.get("/public/skills.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
-        assert r.headers["cache-control"] == "no-store, max-age=0"
+        assert r.headers["cache-control"] == "public, max-age=300"
         assert b"Python" in r.content  # tech stack
         assert b"GateKeeper" in r.content  # projects
 
@@ -50,6 +50,51 @@ def test_legacy_svg_redirects():
             assert r.headers["location"] == target
 
 
+def test_svg_responses_carry_a_revalidating_etag():
+    """A cache stores the render, then revalidates; unchanged bytes answer 304."""
+    with TestClient(create_app()) as client:
+        r = client.get("/public/name.svg")
+        assert r.status_code == 200
+        tag = r.headers["etag"]
+        assert tag.startswith('"') and tag.endswith('"')
+
+        # Same bytes + the stored validator -> 304, no body, no re-render sent.
+        again = client.get("/public/name.svg", headers={"If-None-Match": tag})
+        assert again.status_code == 304
+        assert not again.content
+        assert again.headers["etag"] == tag
+
+        # A stale validator still gets the full body, and the fresh tag with it.
+        stale = client.get("/public/name.svg", headers={"If-None-Match": '"not-the-tag"'})
+        assert stale.status_code == 200
+        assert stale.content
+        assert stale.headers["etag"] == tag
+
+
+def test_etag_is_deprecated_when_the_content_moves():
+    """The tag is derived from the bytes, so different content cannot share one."""
+    from apps.routes import _etag
+
+    assert _etag(b"one") != _etag(b"two")
+    assert _etag(b"one") == _etag(b"one")
+
+
+def test_every_svg_route_revalidates():
+    with TestClient(create_app()) as client:
+        for path in [
+            "/public/name.svg",
+            "/public/console.svg",
+            "/public/skills.svg",
+            "/public/project/gatekeeper.svg",
+        ]:
+            r = client.get(path)
+            assert r.status_code == 200, path
+            assert r.headers["cache-control"] == "public, max-age=300", path
+            assert r.headers["etag"], path
+            cached = client.get(path, headers={"If-None-Match": r.headers["etag"]})
+            assert cached.status_code == 304, path
+
+
 def test_old_typing_route_gone():
     with TestClient(create_app()) as client:
         assert client.get("/typing.svg").status_code == 404
@@ -60,7 +105,7 @@ def test_project_badge_route():
         r = client.get("/public/project/gatekeeper.svg")
         assert r.status_code == 200
         assert r.headers["content-type"].startswith("image/svg+xml")
-        assert r.headers["cache-control"] == "no-store, max-age=0"
+        assert r.headers["cache-control"] == "public, max-age=300"
         assert b"<svg" in r.content
 
 

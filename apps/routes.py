@@ -1,13 +1,51 @@
 from __future__ import annotations
 
-from fastapi import APIRouter
+import hashlib
+
+from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
 
 from apps import console_svg, name_svg, project_svg, skills_svg
 
 router = APIRouter()
 
-_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}
+# The SVGs are re-rendered on every request and their bytes change whenever the
+# art, the blurbs, or the font change. Instead of forbidding caches outright, the
+# response carries an ETag derived from the bytes, so a cache stores the render
+# and revalidates it cheaply:
+#
+#   unchanged -> 304 Not Modified, a few bytes, no re-render sent
+#   changed   -> 200 with the new bytes
+#
+# That gives a cached response for speed without a manual purge step, because the
+# cache is told when the content moves rather than assuming it never will.
+#
+# `public` is what lets Cloudflare and camo store it: a `private` response is
+# skipped by every shared cache. The window is deliberately short (5 minutes), so
+# a change becomes visible quickly even if a cache never revalidates; the ETag
+# below makes the revalidation cheap when the cache does ask.
+_SVG_CACHE = {"Cache-Control": "public, max-age=300"}
+
+
+def _etag(body: bytes) -> str:
+    """Strong ETag over the rendered bytes."""
+    return '"' + hashlib.sha256(body).hexdigest()[:32] + '"'
+
+
+def _svg_response(body: bytes, request: Request) -> Response:
+    """Return the SVG with a cache policy that revalidates on change.
+
+    A matching `If-None-Match` answers `304` with no body, which is what makes a
+    cached badge cheap while still updating the moment the content differs.
+    """
+    tag = _etag(body)
+    if request.headers.get("if-none-match") == tag:
+        return Response(status_code=304, headers={**_SVG_CACHE, "ETag": tag})
+    return Response(
+        content=body,
+        media_type="image/svg+xml",
+        headers={**_SVG_CACHE, "ETag": tag},
+    )
 
 
 @router.get("/")
@@ -40,34 +78,22 @@ async def project_route(slug: str):
     return RedirectResponse(url=f"/public/project/{slug}.svg", status_code=301)
 
 @router.get("/public/name.svg")
-async def public_name_route():
-    return Response(
-        content=name_svg.render_name_svg(),
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+async def public_name_route(request: Request):
+    return _svg_response(name_svg.render_name_svg().encode("utf-8"), request)
 
 
 @router.get("/public/console.svg")
-async def public_console_route():
-    return Response(
-        content=console_svg.render_console_svg(),
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+async def public_console_route(request: Request):
+    return _svg_response(console_svg.render_console_svg().encode("utf-8"), request)
 
 
 @router.get("/public/skills.svg")
-async def public_skills_route():
-    return Response(
-        content=skills_svg.render_skills_svg(),
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+async def public_skills_route(request: Request):
+    return _svg_response(skills_svg.render_skills_svg().encode("utf-8"), request)
 
 
 @router.get("/public/project/{slug}.svg")
-async def public_project_route(slug: str):
+async def public_project_route(slug: str, request: Request):
     try:
         content = project_svg.render_project_badge(slug)
     except KeyError:
@@ -76,11 +102,7 @@ async def public_project_route(slug: str):
             media_type="text/plain",
             status_code=404,
         )
-    return Response(
-        content=content,
-        media_type="image/svg+xml",
-        headers=_NO_CACHE,
-    )
+    return _svg_response(content.encode("utf-8"), request)
 
 @router.get("/public/projects/{slug}.svg", include_in_schema=False)
 async def project_plural_route(slug: str):

@@ -11,7 +11,7 @@ are embedded in each project's `README.md` and on the project's page in the port
 
 | Method | Path | Notes |
 |--------|------|-------|
-| `GET` | `/public/project/{slug}.svg` | The badge. `image/svg+xml`, `no-store`. `404` for an unknown slug |
+| `GET` | `/public/project/{slug}.svg` | The badge. `image/svg+xml`, `public, max-age=300` plus an `ETag`. `404` for an unknown slug |
 | `GET` | `/projects/{slug}.svg` | Legacy short form, `301` to the canonical path |
 
 `GET /public` lists every canonical asset, including one entry per project badge.

@@ -4,7 +4,7 @@ An 8-line “bring-up” badge, a fresh Linux boot, then the pre-prod `docker co
 
 ## Route
 
-`GET /console.svg` → `image/svg+xml` with `Cache-Control: no-store, max-age=0` (`apps/routes.py::console_route`).
+`GET /public/console.svg` → `image/svg+xml` with `Cache-Control: public, max-age=300` plus an `ETag` (`apps/routes.py::public_console_route`). The legacy `GET /console.svg` `301`s here.
 
 ## Session Highlights
 

@@ -8,7 +8,7 @@ NovaProtocol serves **three** public SVG badges, each is a scripted `utilities/t
 ![console](https://github.projectnova.download/console.svg)
 ```
 
-All three are generated the same way: a `COMMANDS: list[dict]` session script + a `TerminalSVG` view that renders it to an SVG string, served as `image/svg+xml` with `no-store`.
+All three are generated the same way: a `COMMANDS: list[dict]` session script + a `TerminalSVG` view that renders it to an SVG string, served as `image/svg+xml` from a short-lived `public` cache that revalidates on an `ETag`.
 
 ## The Three Badges
 
@@ -29,30 +29,38 @@ Each badge has its own page:
 ```python
 # apps/routes.py
 
-_NO_CACHE = {"Cache-Control": "no-store, max-age=0"}
+_SVG_CACHE = {"Cache-Control": "public, max-age=300"}
 
-@router.get("/name.svg")
-async def name_route():
- return Response(
- content=name_svg.render_name_svg(), media_type="image/svg+xml", headers=_NO_CACHE
- )
+def _etag(body: bytes) -> str:
+    return '"' + hashlib.sha256(body).hexdigest()[:32] + '"'
 
-@router.get("/console.svg")
-async def console_route():
- return Response(
- content=console_svg.render_console_svg(), media_type="image/svg+xml", headers=_NO_CACHE
- )
+def _svg_response(body: bytes, request: Request) -> Response:
+    tag = _etag(body)
+    if request.headers.get("if-none-match") == tag:
+        return Response(status_code=304, headers={**_SVG_CACHE, "ETag": tag})
+    return Response(
+        content=body,
+        media_type="image/svg+xml",
+        headers={**_SVG_CACHE, "ETag": tag},
+    )
 
-@router.get("/skills.svg")
-async def skills_route():
- return Response(
- content=skills_svg.render_skills_svg(), media_type="image/svg+xml", headers=_NO_CACHE
- )
+@router.get("/public/name.svg")
+async def public_name_route(request: Request):
+ return _svg_response(name_svg.render_name_svg().encode("utf-8"), request)
 ```
 
+`/public/console.svg`, `/public/skills.svg` and `/public/project/{slug}.svg` answer through the
+same helper; the legacy `/name.svg` aliases `301` to the `/public/` path.
+
 - `Content-Type: image/svg+xml`, GitHub camo and browsers render as images.
-- `Cache-Control: no-store, max-age=0`, prevents stale animation caching (the SVG's internal timing is part of the content).
-- All three routes are **public**: no `GateKeeper gate`, no cookie.
+- `Cache-Control: public, max-age=300`, a cache may store the render for five minutes. `public`
+  is what lets a shared cache (Cloudflare, camo) store it at all: a `private` response is
+  skipped by every shared cache.
+- `ETag`, a strong validator over the rendered bytes. A cache that holds a copy sends
+  `If-None-Match`; matching bytes answer `304 Not Modified` with no body, changed bytes answer
+  `200` with the new render. That is why a cached badge still updates on the next revalidation
+  instead of going stale for the full window.
+- All three routes are **public**: no `GateKeeper` login, no cookie.
 
 ## Live Preview
 
@@ -96,4 +104,4 @@ Per-entry overrides (`custom_prefix`, `custom_start_delay`, `custom_end_delay`) 
 
 Each SVG is a few hundred KB of `<tspan>` + `<animate>`, no images, no fonts beyond the viewer's monospace fallback, no JS. Rendering is `O(total_chars + rows * scroll_times)` and happens per-request; there is no on-disk cache, the timeline is built fresh each `render_*_svg()` call. For the current session lengths (name ~8 entries, console ~20, skills ~5) the wall-clock cost is negligible (<10ms).
 
-If badges ever need caching, wrap `render_*_svg()` with a `lru_cache(maxsize=1)` or pre-render at startup, but the `no-store` header means GitHub will still re-fetch.
+The `ETag` makes a repeat fetch cheap for a cache that revalidates, but it does not make the render itself cheap: the bytes are still produced per request on a cache miss or a revalidation that finds a change. Wrapping `render_*_svg()` with an `lru_cache(maxsize=1)` or pre-rendering at startup would remove that work, and the `ETag` would then be stable rather than recomputed, so it is a safe follow-up if the render cost ever matters.

@@ -4,7 +4,7 @@ A tall 20-line badge, the “career panel” that cycles through four panes via 
 
 ## Route
 
-`GET /skills.svg` → `image/svg+xml` with `Cache-Control: no-store, max-age=0` (`apps/routes.py::skills_route`).
+`GET /public/skills.svg` → `image/svg+xml` with `Cache-Control: public, max-age=300` plus an `ETag` (`apps/routes.py::public_skills_route`). The legacy `GET /skills.svg` `301`s here.
 
 ## Session
 
@@ -147,7 +147,7 @@ Each `output` is exactly `max_line` (20) rows, content + blank `""` padding. Bla
 ### Timing
 
 - `custom_start_delay=0.5`, short prompt beat before each script types.
-- `custom_end_delay=10.0`, hold the pane for 10 seconds so the profile viewer can read before the next pane scrolls in. GitHub's camo cache is `no-store`, but the SVG itself still plays for ~40s before settling.
+- `custom_end_delay=10.0`, hold the pane for 10 seconds so the profile viewer can read before the next pane scrolls in. GitHub's camo cache holds the render for about a minute regardless, but the SVG itself still plays for ~40s before settling, and a revalidation picks up a changed render.
 
 ### Renderer
 
