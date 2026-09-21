@@ -14,9 +14,11 @@ All three are generated the same way: a `COMMANDS: list[dict]` session script + 
 
 | Badge | Route | `max_line` | Size | What It Shows |
 |-------|-------|------------|------|---------------|
-| **Name** | `GET /name.svg` | `8` | `880×~166` | `PS > ssh nova…` → `nova@ProjectNova pwd` → `./introduce_yourself.sh` → green NOVA block art + name/link |
-| **Console** | `GET /console.svg` | `8` | `880×~166` | Full boot: `whoami`, `hostname`, `uptime`, `free -h`, `df -h`, `ss -tlnp`, `systemctl`, `docker compose`, `curl /health`, `cloudflared` → `exit` |
-| **Skills** | `GET /skills.svg` | `20` | `880×~466` | Career panes via `./get_*.sh`, summary, tech stack, cert, projects, each full-screen (20 lines) × 10s |
+| **Name** | `GET /public/name.svg` | `8` | `880×~166` | `PS > ssh nova…` → `nova@ProjectNova pwd` → `./introduce_yourself.sh` → green NOVA block art + name/link |
+| **Console** | `GET /public/console.svg` | `8` | `880×~166` | Full boot: `whoami`, `hostname`, `uptime`, `free -h`, `df -h`, `ss -tlnp`, `systemctl`, `docker compose`, `curl /health`, `cloudflared` → `exit` |
+| **Skills** | `GET /public/skills.svg` | `20` | `880×~466` | Career panes via `./get_*.sh`, summary, tech stack, cert, projects, each full-screen (20 lines) × 10s |
+
+The legacy unfixed paths (`/name.svg`, `/console.svg`, `/skills.svg`) `301` to these and are kept only so an already-stored camo copy keeps resolving.
 
 Each badge has its own page:
 
