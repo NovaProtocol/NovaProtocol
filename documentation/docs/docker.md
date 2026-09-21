@@ -235,9 +235,8 @@ TLS is terminated at the tunnel edge (Cloudflare) via `gatekeeper_caddy:7000` (s
 
 ## Deployment Model
 
-- **Remote** (`ssh agent-access`, `scripts/docker.sh` wrapper), local `docker ps` shows dev containers like `dockhand`, not production `novaprotocol_main`. Never `docker compose` against the remote without owner approval.
-- The deployed `compose.yaml` lives on the Dokhand host under `/app/data/stacks/…`, not necessarily the repo copy.
-- Owner deploys, changes are committed here first; the owner copies `compose.yaml`/`Caddyfile` into Dokhand and recreates.
+- **Remote only.** The stack runs on a separate host, so checking containers locally shows development ones rather than the production service. The owner deploys from this repository; changes land here first and the host recreates the stack from them.
+- Ports are published on loopback only. Public access comes from the edge proxy, not from a wide bind.
 - No volumes, the app is stateless (no DB, no uploads); docs `site/` is baked into the image.
 - Restart policy: `restart: unless-stopped` on every service.
 
