@@ -142,7 +142,36 @@ Live SVG gallery, self-contained HTML page embedding the three live badges via `
 | `/test` | `text/html; charset=utf-8` | *(none)* |
 | `/documentation/*` (docs service) | `text/html` / assets | *(docs FastAPI defaults)* |
 
-SVG responses carry a strong `ETag` derived from the rendered bytes, so a cache stores the render and then revalidates it: an `If-None-Match` that matches answers `304 Not Modified` with no body, and a changed render answers `200` with the new bytes. `public, max-age=300` is deliberate, a `private` response is skipped by every shared cache, so `public` is what lets Cloudflare and GitHub's image proxy (camo) store it, and the five-minute window bounds how long a change can go unseen if a cache never revalidates. The SVG is still rendered per request; the `ETag` makes a repeat fetch cheap, it does not cache the render itself.
+SVG responses carry a strong `ETag` derived from the rendered bytes, so a cache stores the render and then revalidates it: an `If-None-Match` that matches answers `304 Not Modified` with no body, and a changed render answers `200` with the new bytes. `public, max-age=300` is deliberate, a `private` response is skipped by every shared cache, so `public` is what lets Cloudflare and GitHub's image proxy (camo) store it. The SVG is still rendered per request; the `ETag` makes a repeat fetch cheap, it does not cache the render itself.
+
+### The Origin Sets the Policy, the Edge Sets the Lifetime
+
+`max-age` is a ceiling the origin offers, not the lifetime a client ends up with. A shared cache sits between the two, and what it tells the client is its own decision. On this deployment the two values differ, measured on `/public/name.svg`:
+
+| Layer | `Cache-Control` | `ETag` | Observed |
+|-------|-----------------|--------|----------|
+| Origin (`novaprotocol_main:8000`) | `public, max-age=300` | strong, derived from the rendered bytes | `200` on a cold fetch, `304` with an empty body when `If-None-Match` matches |
+| Edge (Cloudflare, public URL) | `public, max-age=14400` | the origin's value, passed through unchanged | `cf-cache-status: MISS`, then `REVALIDATED`, then `HIT` with `age` counting up from zero |
+
+So the two halves of this policy have different owners:
+
+- The **origin owns the validator and the policy.** It states that the render is public, produces the bytes, and mints the `ETag` that detects a change. That `ETag` is the single source of truth for whether a stored copy is still good, and it survives the edge untouched.
+- The **edge owns the client-facing lifetime.** Cloudflare holds the render, answers later requests from its own copy without asking the origin, and rewrites `Cache-Control` to its own four-hour window. A client is told `max-age=14400`, never `300`.
+
+Two consequences follow, and both are easy to get wrong:
+
+- Lowering `max-age` in `apps/routes.py` does not lower the number a browser or camo is given. The edge replaces it before the response is served onward.
+- The `ETag` is what keeps a change from being missed at the end of the window. When its copy expires the edge forwards `If-None-Match`, the origin answers `304` if the bytes are unchanged and `200` with fresh bytes and a new `ETag` if they are not, and the stored copy is replaced on that fetch. The outer window is a bound on how long a stale copy may be *reused*, not a bound on how long a change takes to appear once something asks.
+
+To change the outer window itself, the Cloudflare zone's cache TTL is the knob, not the application. Verify the split with:
+
+```bash
+# origin, inside the app container
+docker compose exec app python3 -c "import urllib.request; print(urllib.request.urlopen('http://127.0.0.1:8000/public/name.svg').headers['Cache-Control'])"
+
+# edge, from anywhere
+curl -sSI https://github.projectnova.download/public/name.svg | grep -i 'cache-control\|etag\|cf-cache-status\|age'
+```
 
 Measured behaviour worth knowing: camo applies roughly a 60-second lifetime to these URLs regardless of the origin header, so the practical staleness is about a minute, not the full five minutes. The animation cannot go stale in any case, its SMIL timings are relative to the SVG's own start, so a replayed copy plays from the beginning.
 
