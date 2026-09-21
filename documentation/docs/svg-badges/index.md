@@ -53,14 +53,56 @@ async def public_name_route(request: Request):
 same helper; the legacy `/name.svg` aliases `301` to the `/public/` path.
 
 - `Content-Type: image/svg+xml`, GitHub camo and browsers render as images.
-- `Cache-Control: public, max-age=300`, a cache may store the render for five minutes. `public`
-  is what lets a shared cache (Cloudflare, camo) store it at all: a `private` response is
-  skipped by every shared cache.
+- `Cache-Control: public, max-age=300`, the origin offers a five-minute window and `public` is
+  what lets a shared cache (Cloudflare, camo) store it at all: a `private` response is skipped
+  by every shared cache. The client-visible lifetime is not this number, see
+  [Origin Policy and Edge Lifetime](#origin-policy-and-edge-lifetime).
 - `ETag`, a strong validator over the rendered bytes. A cache that holds a copy sends
   `If-None-Match`; matching bytes answer `304 Not Modified` with no body, changed bytes answer
   `200` with the new render. That is why a cached badge still updates on the next revalidation
   instead of going stale for the full window.
 - All three routes are **public**: no `GateKeeper` login, no cookie.
+
+## Origin Policy and Edge Lifetime
+
+The application and Cloudflare answer for different things, and a badge sits behind both. The
+values below are measured on `/public/name.svg`:
+
+| Layer | `Cache-Control` | `ETag` | Observed |
+|-------|-----------------|--------|----------|
+| Origin (`novaprotocol_main:8000`) | `public, max-age=300` | strong, derived from the rendered bytes | `200` on a cold fetch, `304` with an empty body when `If-None-Match` matches |
+| Edge (Cloudflare, public URL) | `public, max-age=14400` | the origin's value, passed through unchanged | `cf-cache-status: MISS`, then `REVALIDATED`, then `HIT` with `age` counting up from zero |
+
+- The **origin owns the validator and the policy.** It decides that the render is public,
+  produces the bytes, and mints the `ETag` that detects a change. That `ETag` is the single
+  source of truth for whether a stored copy is still good, and it reaches the client unchanged.
+- The **edge owns the client-facing lifetime.** Cloudflare holds the render, answers later
+  requests from its own copy without calling the origin, and rewrites `Cache-Control` to its own
+  four-hour window. A client is told `max-age=14400`, never `300`.
+
+Two consequences, both easy to get wrong:
+
+- Lowering the `max-age` in `_SVG_CACHE` does not lower the number a browser or camo receives.
+  The edge replaces the header before serving the response onward.
+- The `ETag` is what stops a change being missed when the window does end. On expiry the edge
+  forwards `If-None-Match`; the origin answers `304` if the bytes are unchanged, or `200` with
+  fresh bytes and a new `ETag` if they are not, and the stored copy is replaced on that fetch.
+  The window bounds how long a stale copy may be *reused*, not how long a change takes to appear
+  once something asks.
+
+Changing the outer window is a Cloudflare zone setting, not an application change. To see the
+split for yourself:
+
+```bash
+# origin
+cat <<'PYEOF' | docker compose exec -T app python3
+import urllib.request
+print(urllib.request.urlopen('http://127.0.0.1:8000/public/name.svg').headers['Cache-Control'])
+PYEOF
+
+# edge
+curl -sSI https://github.projectnova.download/public/name.svg | grep -i 'cache-control\|etag\|cf-cache-status\|age'
+```
 
 ## Live Preview
 
