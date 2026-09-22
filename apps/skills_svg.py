@@ -118,7 +118,7 @@ COMMANDS: list[dict] = [
             f"{RED}Private{RESET} - {GREEN}{BOLD}GateKeeper{RESET}      {BLUE}SSO access-code auth gate · Flask · Docker{RESET}",
             f"{RED}Private{RESET} - {GREEN}{BOLD}Portfolio{RESET}       {BLUE}Personal site · Flask · Gunicorn · Cloudflare Tunnel{RESET}",
             f"{RED}Private{RESET} - {GREEN}{BOLD}Water Billing{RESET}   {BLUE}Utility CIS · FastAPI · MySQL · Xendit · Docker{RESET}",
-            f"{RED}Private{RESET} - {GREEN}{BOLD}SolveSpace{RESET}      {BLUE}Python practice sandbox · Flask · Bubblewrap{RESET}",
+            f"{RED}Private{RESET} - {GREEN}{BOLD}PracticeForge{RESET}      {BLUE}Python practice sandbox · Flask · Bubblewrap{RESET}",
             f"{GREEN}Public {RESET} - {GREEN}{BOLD}NovaProtocol{RESET}    {BLUE}GitHub profile SVG asset server · FastAPI · svgwrite{RESET}",
             "",
             "",

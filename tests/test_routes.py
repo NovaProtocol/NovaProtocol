@@ -154,7 +154,7 @@ def test_badge_art_comes_from_the_font_file():
     """The badge draws the project name, so the art must match the font output."""
     from apps import figlet, project_svg
 
-    for slug in ("gatekeeper", "solvespace"):
+    for slug in ("gatekeeper", "practiceforge"):
         art = figlet.render(project_svg.PROJECTS[slug]["art"])
         assert art, slug
         # The font is 7 rows and its last row is the blank shadow baseline, so
