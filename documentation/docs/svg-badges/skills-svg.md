@@ -101,7 +101,7 @@ COMMANDS: list[dict] = [
  f"{RED}Private{RESET} - {GREEN}{BOLD}GateKeeper{RESET} {BLUE}SSO access-code auth gate · Flask · Docker{RESET}",
  f"{RED}Private{RESET} - {GREEN}{BOLD}Portfolio{RESET} {BLUE}Personal site · Flask · Gunicorn · Cloudflare Tunnel{RESET}",
  f"{RED}Private{RESET} - {GREEN}{BOLD}Water Billing{RESET} {BLUE}Utility CIS · FastAPI · MySQL · Xendit · Docker{RESET}",
- f"{RED}Private{RESET} - {GREEN}{BOLD}SolveSpace{RESET} {BLUE}Python practice sandbox · Flask · Bubblewrap{RESET}",
+ f"{RED}Private{RESET} - {GREEN}{BOLD}PracticeForge{RESET} {BLUE}Python practice sandbox · Flask · Bubblewrap{RESET}",
  f"{GREEN}Public {RESET} - {GREEN}{BOLD}NovaProtocol{RESET} {BLUE}GitHub profile SVG asset server · FastAPI · svgwrite{RESET}",
  "",
  "",
@@ -140,7 +140,7 @@ def render_skills_svg() -> str:
 | `get_summary.sh` | 7 | DOST scholar, backend, frontend/mobile, devops, networking, embedded, mechanical |
 | `get_tech_stack.sh` | 8 | programming langs, frameworks, DBs, servers, networking, mobile, hardware, mechanical |
 | `get_certification.sh` | 1 | SO2, DOLE Accredited Safety Officer 2 · BOSH · 2024 |
-| `get_projects.sh` | 5 | GateKeeper / Portfolio / Water Billing / SolveSpace / NovaProtocol with labels |
+| `get_projects.sh` | 5 | GateKeeper / Portfolio / Water Billing / PracticeForge / NovaProtocol with labels |
 
 Each `output` is exactly `max_line` (20) rows, content + blank `""` padding. Blank output lines still generate a `Row` (empty `<text>`), so the timeline has uniform 20-row panes and the renderer's `y` chain scrolls one full viewport per pane.
 

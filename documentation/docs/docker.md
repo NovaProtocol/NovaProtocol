@@ -210,7 +210,7 @@ COPY Caddyfile /etc/caddy/Caddyfile
 `handle_path` strips the prefix before proxying, the docs app sees `/` for `GET /documentation/` and `/getting-started/` for `GET /documentation/getting-started/`.
 
 !!! note "Intentionally public via GateKeeper rules"
- Unlike Buddys/Portfolio/SolveSpace/WBS, NovaProtocol's routes use GateKeeper `none`-rule decisions instead of access-code gating, the assets are GitHub profile embeds fetched by camo without cookies, so a login redirect would break the image. The caddy still joins the GateKeeper-owned `gatekeeper` network (live `NovaProtocol/compose.yaml`: caddy on `default` + `gatekeeper`), public-ness lives in GateKeeper rules, not in network membership. Documentation follows the same rule, `/documentation/*` is public. This is the declared exception to the default gate-everything rule.
+ Unlike Buddys/Portfolio/PracticeForge/WBS, NovaProtocol's routes use GateKeeper `none`-rule decisions instead of access-code gating, the assets are GitHub profile embeds fetched by camo without cookies, so a login redirect would break the image. The caddy still joins the GateKeeper-owned `gatekeeper` network (live `NovaProtocol/compose.yaml`: caddy on `default` + `gatekeeper`), public-ness lives in GateKeeper rules, not in network membership. Documentation follows the same rule, `/documentation/*` is public. This is the declared exception to the default gate-everything rule.
 
 ### Verify Caddy
 

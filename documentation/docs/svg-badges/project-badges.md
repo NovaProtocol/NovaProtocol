@@ -23,7 +23,7 @@ are embedded in each project's `README.md` and on the project's page in the port
 | `gatekeeper` | GateKeeper |
 | `water-billing-system` | Water Billing System |
 | `mle-review` | MELE Review |
-| `solvespace` | SolveSpace |
+| `practiceforge` | PracticeForge |
 | `portfolio` | Portfolio |
 | `novaprotocol` | NovaProtocol |
 
