@@ -26,7 +26,7 @@ SLUGS: tuple[str, ...] = (
     "gatekeeper",
     "water-billing-system",
     "mle-review",
-    "solvespace",
+    "practiceforge",
     "portfolio",
     "novaprotocol",
 )
@@ -49,9 +49,9 @@ PROJECTS: dict[str, dict[str, str]] = {
         "url": "https://melereview.projectnova.download",
         "blurb": "a study companion for the licensure exam",
     },
-    "solvespace": {
-        "art": "SolveSpace",
-        "url": "https://solver.projectnova.download",
+    "practiceforge": {
+        "art": "PracticeForge",
+        "url": "https://practiceforge.projectnova.download",
         "blurb": "a private competitive-programming practice workspace",
     },
     "portfolio": {
