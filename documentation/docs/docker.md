@@ -2,7 +2,7 @@
 
 ## Compose
 
-`compose.yaml`, three services: `app` + `documentation` + `caddy`. Single `default` network + the shared tunnel external network.
+`compose.yaml`, three services: `app` + `documentation` + `caddy`. Single `default` network + the external `gatekeeper` network.
 
 ```yaml
 services:
@@ -51,16 +51,12 @@ services:
  networks:
  - default
  - gatekeeper
- - cloudflared-tunnel
 
 networks:
  default:
  gatekeeper:
  external: true
  name: gatekeeper
- cloudflared-tunnel:
- external: true
- name: cloudflared-tunnel
 ```
 
 ### Naming
@@ -71,7 +67,7 @@ networks:
 | `documentation` | `novaprotocol_documentation` | MkDocs FastAPI on `8005` |
 | `caddy` | `novaprotocol_caddy` | Caddy on `7050` |
 
-Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app`, avoids the shared-network DNS gotcha where every `app` alias on `cloudflared-tunnel` / `gatekeeper` would resolve together (see `reference/docker/compose.md`).
+Caddy proxies to `container_name` (`novaprotocol_main:8000`, `novaprotocol_documentation:8005`), **not** the generic service name `app`, avoids the shared-network DNS gotcha where every `app` alias on the shared `gatekeeper` network would resolve together (see `reference/docker/compose.md`).
 
 ### Environment
 
