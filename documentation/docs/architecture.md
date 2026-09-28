@@ -129,7 +129,8 @@ Full deep-dives: [Terminal SVG Overview](terminal-svg/index.md), [SVG Badges](sv
 
 ```mermaid
 graph TB
- TUN["cloudflared tunnel<br/>external network<br/>cloudflared-tunnel"] --> CADDY
+ TUN["cloudflared tunnel"] --> GK["GateKeeper :7000<br/>wildcard, none-rule (public)"]
+ GK --> CADDY
  CADDY["Caddy<br/>:7050<br/>novaprotocol_caddy<br/>caddy:2-alpine"] --> APP["app<br/>novaprotocol_main:8000<br/>granian asgi<br/>python:3.14-slim"]
  CADDY --> DOCS["documentation<br/>novaprotocol_documentation:8005<br/>granian asgi"]
 ```
@@ -138,12 +139,12 @@ graph TB
 - `handle /health { reverse_proxy novaprotocol_main:8000 }` bypasses everything (tunnel and compose probes). No `GateKeeper gate`.
 - `handle_path /documentation/* { reverse_proxy novaprotocol_documentation:8005 }`, **public**, prefix-stripped (`handle_path`). Serves the prebuilt MkDocs `site/` via FastAPI on `:8005`.
 - `handle { reverse_proxy novaprotocol_main:8000 }`, everything else public (the three SVGs and `/test`).
-- Proxy targets use `container_name` (`novaprotocol_main`, `novaprotocol_documentation`), never the generic service name `app`, to avoid the shared-network DNS collision where every `app` alias on `cloudflared-tunnel` would resolve together (see `reference/docker/compose.md` → Shared-network DNS gotcha).
-- Compose: app and docs on `default`; caddy on `default` (external). Caddy publishes `127.0.0.1:7050:7050` loopback-only.
+- Proxy targets use `container_name` (`novaprotocol_main`, `novaprotocol_documentation`), never the generic service name `app`, to avoid the shared-network DNS collision where every `app` alias on the shared `gatekeeper` network would resolve together (see `reference/docker/compose.md` → Shared-network DNS gotcha).
+- Compose: app and docs on `default`; caddy on `default` + the external `gatekeeper` network. Caddy publishes `127.0.0.1:7050:7050` loopback-only.
 - Healthchecks: `python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:<port>/health')"` with 30s interval, 5s timeout, 3 retries.
 
-!!! note "No gatekeeper network"
- This is the only portfolio project whose `compose.yaml` does **not** join `gatekeeper` and whose `Caddyfile` has **no** `GateKeeper gate`. That is intentional and documented here and in [Docker & Deployment](docker.md). Adding a gate would break GitHub profile embeds.
+!!! note "Public by rule, not by network"
+ The caddy joins the GateKeeper-owned `gatekeeper` network so GateKeeper can route to it; public-ness comes from a `none` rule on the wildcard, not from leaving the network. Adding an `access_code` rule would break the GitHub profile embeds. Documented here and in [Docker & Deployment](docker.md).
 
 ---
 
@@ -163,4 +164,4 @@ Run: `pytest -q` or `pre-commit run --all`.
 - `ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1` set early in Dockerfiles.
 - Images run as non-root `appuser` (uid `10001`), `EXPOSE` matches Caddy targets, `CMD` is exec-form granian.
 - Pre-commit gates all commits locally; no `.github/workflows` (billable Actions).
-- `docs/` is scratch and stays gitignored; the published documentation is `documentation/` (tracked, Material theme, built into its own image).
+- `docs/` is scratch and stays out of git via `.git/info/exclude`; the published documentation is `documentation/` (tracked, Material theme, built into its own image).
