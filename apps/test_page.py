@@ -22,10 +22,15 @@ def _render_svg_gallery() -> str:
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>GitHub Profile Assets</title>
 <style>
   body {{ margin:0; padding:32px 16px; background:#0d1117; font-family:system-ui,sans-serif; }}
   h1 {{ color:#e6edf3; text-align:center; font-size:20px; margin:0 0 32px; }}
+  @media (max-width: 768px) {{
+    body {{ padding:16px 8px; }}
+    h1 {{ font-size:17px; margin-bottom:20px; }}
+  }}
 </style>
 </head>
 <body>
