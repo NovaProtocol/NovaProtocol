@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import hashlib
 
+from pathlib import Path
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.templating import Jinja2Templates
 
 from apps import console_svg, name_svg, project_svg, skills_svg
 
@@ -48,8 +51,16 @@ def _svg_response(body: bytes, request: Request) -> Response:
     )
 
 
-@router.get("/")
-async def root():
+templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
+
+
+@router.get("/", response_class=HTMLResponse)
+async def root(request: Request):
+    return templates.TemplateResponse(request, "landing.html")
+
+
+@router.get("/status")
+async def status():
     return {"service": "NovaProtocol Assets", "status": "ok"}
 
 
