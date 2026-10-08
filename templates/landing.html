@@ -1,37 +1,27 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>NovaProtocol</title>
-  <link rel="preconnect" href="https://cdn.projectnova.download" crossorigin>
-  <link rel="stylesheet" href="https://cdn.projectnova.download/flat/dark/theme.css?v=7">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <style>
+{% extends "_shell/base.html" %}
+
+{% block title %}NovaProtocol{% endblock %}
+
+{% block tailwind %}{% endblock %}
+
+{% block head_assets %}
+<style>
     body{background:var(--ui-surface);color:var(--ui-on-surface);font-family:var(--ui-font-body);margin:0;}
     main{max-width:900px;margin:0 auto;padding:40px 24px;}
     h1{font-size:1.9rem;font-weight:800;margin:0 0 6px;}
     .sub{color:var(--ui-on-surface-variant);margin:0 0 28px;font-size:1rem;}
     .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;}
-  </style>
-    <script src="https://cdn.projectnova.download/shell.js"></script>
-</head>
-<body>
-<nav class="ui-navbar">
-  <div class="ui-navbar__inner">
-    <span class="ui-navbar__lead" aria-hidden="true"></span>
-    <a class="ui-navbar__brand" href="/">~/<span>novaprotocol</span></a>
-    <div class="ui-navbar__right">
-      <ul class="ui-navbar__links">
-      <li><a class="ui-navbar__link" href="https://github.com/NovaProtocol" target="_blank" rel="noopener">GitHub</a></li>
-      <li><a class="ui-navbar__link" href="/status">Status</a></li>
-    </ul>
-      <button class="ui-theme-toggle" aria-label="Toggle light/dark"></button>
-    </div>
-  </div>
-</nav>
-<main>
+</style>
+{% endblock %}
+
+{% block brand_name %}novaprotocol{% endblock %}
+
+{% block nav_links %}
+<li><a class="ui-navbar__link" href="https://github.com/NovaProtocol" target="_blank" rel="noopener">GitHub</a></li>
+<li><a class="ui-navbar__link" href="/status">Status</a></li>
+{% endblock %}
+
+{% block content %}
   <h1>NovaProtocol</h1>
   <p class="sub">Dynamic SVG assets for my GitHub profile — rendered fresh on every request, embedded straight into a README.</p>
   <div class="grid">
@@ -39,12 +29,13 @@
     <a class="ui-card" href="/public/skills.svg" style="text-decoration:none"><div class="ui-card__body"><strong>skills.svg</strong><div class="sub" style="margin:6px 0 0">Multi-colour skills blocks.</div></div></a>
     <a class="ui-card" href="/public/console.svg" style="text-decoration:none"><div class="ui-card__body"><strong>console.svg</strong><div class="sub" style="margin:6px 0 0">The animated console session.</div></div></a>
   </div>
-</main>
+{% endblock %}
+
+{% block footer %}
 <footer class="ui-footer">
   <div class="ui-footer__inner">
     <div>NovaProtocol — public asset server</div>
     <div><a href="https://github.com/NovaProtocol">github.com/NovaProtocol</a></div>
   </div>
 </footer>
-</body>
-</html>
+{% endblock %}
