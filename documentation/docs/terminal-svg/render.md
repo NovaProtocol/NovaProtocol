@@ -149,7 +149,7 @@ def _loop_animate(el, attr: str, appear_t: float, total: float, values=("0", "1"
 `max_line=8`, 12 rows total → `scroll_times = rows[8].begin, rows[9].begin, rows[10].begin, rows[11].begin`, 4 jumps.
 
 - Row 0: `init_y = 60` → at `rows[8].begin` → `40` → at `rows[9].begin` → `20` → `0` → `-20` (clipped).
-- Row 8 (first overflow): `init_y = 220` → before its `begin` it is below the clip (`content_h = 160` → viewport `y` range ~`46–206`), at its `begin` it stays at `220` but its `opacity` fades in and immediately all rows shift, so it slides into the last visible slot.
+- Row 8 (first overflow): `init_y = 220` → before its `begin` it is below the clip (`content_h = 160` → viewport `y` range ~`46-206`), at its `begin` it stays at `220` but its `opacity` fades in and immediately all rows shift, so it slides into the last visible slot.
 
 ## Font & Sizing
 
